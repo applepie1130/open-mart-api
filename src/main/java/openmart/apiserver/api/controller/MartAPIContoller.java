@@ -43,15 +43,14 @@ public class MartAPIContoller {
 		return null;
 	}
 	
-	
 	@PostMapping(path="/martHolidayInfos")
 	@ApiOperation(
 			httpMethod = "POST",
 			value = "마트정보 데이터 생성",
-			notes = "대형마트 정보에 대해 사전 데이터 생성"
-//			response = String.class
+			notes = "대형마트 정보에 대해 사전 데이터 생성",
+			response = String.class
 			)
-	public void saveMartHolidayInfos () {
-		martService.saveMartHolidayInfos();
+	public String saveMartHolidayInfos () {
+		return martService.saveMartHolidayInfos();
 	}
 }

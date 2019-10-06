@@ -5,7 +5,6 @@ import java.util.List;
 
 public class EmartConstants {
 
-	
 	public static final String name = "이마트";
 	
 	public static final String apiUrl = "https://store.emart.com/branch/holidayList.do";

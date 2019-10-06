@@ -25,5 +25,5 @@ public class EmartResponseTuple implements Serializable {
     private Integer dateListMinus;
     private Integer dateListPlus;
 	private List<Map<String, String>> dateList;
-//    private List<EmartDetailResponseTuple> dateList;
+	
 }
