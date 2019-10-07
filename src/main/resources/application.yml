@@ -1,9 +1,15 @@
 
 server:
   port: 8081
-  
+
+
+logging:
+  path: "/tank0/logs"
+#  level:
+#    root: error  
   
 #spring:
 #  resources:
 #    static-locations:
 #    - /swagger/
+

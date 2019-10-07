@@ -6,9 +6,9 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
@@ -34,11 +34,11 @@ public class MartAPIContoller {
 			response = Map.class
 			)
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = "longitude", value = "위도", required = true, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "latitude", value = "경도", required = true, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "latitude", value = "위도", required = true, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "longitude", value = "경도", required = true, dataType = "string", paramType = "query"),
 		@ApiImplicitParam(name = "martName", value = "마트명", required = false, dataType = "string", paramType = "query")
 	})
-	public List<Map> findMartHolidayInfos (@RequestParam(value="martSearchCriteria", defaultValue = "마트정보조회 파라미터") MartSearchCriteria martSearchCriteria) {
+	public List<Map> findMartHolidayInfos (@ModelAttribute MartSearchCriteria martSearchCriteria) {
 		martService.findMartHolidayInfos(martSearchCriteria);
 		return null;
 	}

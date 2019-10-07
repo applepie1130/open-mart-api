@@ -10,8 +10,8 @@ public class MartSearchCriteria implements Serializable {
 	
 	private static final long serialVersionUID = -6053645793274962419L;
 	
-	private String latitude;
-	private String longitude;
-	private String martName;
+	private String latitude; // 위도
+	private String longitude; // 경도
+	private String martName; // 마트명
 }
 

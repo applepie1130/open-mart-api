@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -61,23 +62,24 @@ public class MartService {
 			// TODO:에러처리
 		}
 		
-		if (StringUtils.isNotBlank(martName)) {
-			// 마트 이름이 있는경우
-			
-			// 위치기반 네이버API호출
-			NaverSearchResponseTuple naverSearchResponseTuple = this.callNaverApi(latitude, longitude, martName);
-			
-			
-		} else { 
-			// 마트이름이 없는경우, 대형마트 정보 전체 조회
-			
-			// 위치기반 네이버API호출
-			NaverSearchResponseTuple emartSearchResponseTuple = this.callNaverApi(longitude, latitude, EmartConstants.name);
-			NaverSearchResponseTuple lotteSearchMartResponseTuple = this.callNaverApi(longitude, latitude, LotteMartConstants.name);
-			NaverSearchResponseTuple homeplusSearchResponseTuple = this.callNaverApi(longitude, latitude, HomeplusConstants.name);
-			NaverSearchResponseTuple costcoSearchResponseTuple = this.callNaverApi(longitude, latitude, CostcoConstants.name);
-		}
+		NaverSearchResponseTuple naverSearchResponseTuple = this.callNaverApi(latitude, longitude, martName);
 		
+//		if (StringUtils.isNotBlank(martName)) {
+//			// 마트 이름이 있는경우
+//			
+//			// 위치기반 네이버API호출
+//			NaverSearchResponseTuple naverSearchResponseTuple = this.callNaverApi(latitude, longitude, martName);
+//			
+//			
+//		} else { 
+//			// 마트이름이 없는경우, 대형마트 정보 전체 조회
+//			
+//			// 위치기반 네이버API호출
+//			NaverSearchResponseTuple emartSearchResponseTuple = this.callNaverApi(longitude, latitude, EmartConstants.name);
+//			NaverSearchResponseTuple lotteSearchMartResponseTuple = this.callNaverApi(longitude, latitude, LotteMartConstants.name);
+//			NaverSearchResponseTuple homeplusSearchResponseTuple = this.callNaverApi(longitude, latitude, HomeplusConstants.name);
+//			NaverSearchResponseTuple costcoSearchResponseTuple = this.callNaverApi(longitude, latitude, CostcoConstants.name);
+//		}
 	}
 	
 	/**
@@ -92,10 +94,10 @@ public class MartService {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
 		RestTemplate restTemplate = new RestTemplate();
-		UriComponentsBuilder mainBuilder = UriComponentsBuilder.fromHttpUrl(LotteMartConstants.apiUrl)
+		UriComponentsBuilder mainBuilder = UriComponentsBuilder.fromHttpUrl(NaverConstants.apiUrl)
 															   .queryParam("query", martName)
-															   .queryParam("coordinate", longitude+latitude)
-															   .queryParam("","");
+															   .queryParam("coordinate", longitude+","+latitude) // "경도,위도" 형식
+															   .queryParam("orderBy","popularity");
 		
 		String uri = mainBuilder.toUriString();
 		
@@ -103,7 +105,8 @@ public class MartService {
 		headers.add("X-NCP-APIGW-API-KEY-ID", NaverConstants.X_NCP_APIGW_API_KEY_ID);
 		headers.add("X-NCP-APIGW-API-KEY", NaverConstants.X_NCP_APIGW_API_KEY);
 		
-		
+		ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<Object>(headers), String.class);
+		log.debug("{}", response);
 		
 		return null;
 	}
