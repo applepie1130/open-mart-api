@@ -32,10 +32,10 @@ import openmart.apiserver.api.model.tuple.emart.EmartResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartDetailResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartSubResponseTuple;
+import openmart.apiserver.api.model.tuple.naver.NaverPlaceResponseTuple;
 import openmart.apiserver.api.model.tuple.naver.NaverSearchResponseTuple;
-import openmart.apiserver.api.model.type.CostcoConstants;
 import openmart.apiserver.api.model.type.EmartConstants;
-import openmart.apiserver.api.model.type.HomeplusConstants;
+import openmart.apiserver.api.model.type.ExcludedMartNameConstants;
 import openmart.apiserver.api.model.type.LotteMartConstants;
 import openmart.apiserver.api.model.type.NaverConstants;
 
@@ -96,8 +96,7 @@ public class MartService {
 		RestTemplate restTemplate = new RestTemplate();
 		UriComponentsBuilder mainBuilder = UriComponentsBuilder.fromHttpUrl(NaverConstants.apiUrl)
 															   .queryParam("query", martName)
-															   .queryParam("coordinate", longitude+","+latitude) // "경도,위도" 형식
-															   .queryParam("orderBy","popularity");
+															   .queryParam("coordinate", longitude+","+latitude); // "경도,위도" 형식
 		
 		String uri = mainBuilder.toUriString();
 		
@@ -106,9 +105,49 @@ public class MartService {
 		headers.add("X-NCP-APIGW-API-KEY", NaverConstants.X_NCP_APIGW_API_KEY);
 		
 		ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<Object>(headers), String.class);
-		log.debug("{}", response);
+		String body = response.getBody();
+		
+		try {
+			if ( StringUtils.isBlank(body) ) {
+				return null;
+			}
+			
+			NaverSearchResponseTuple naverSearchResponseTuple = mapper.readValue(body, NaverSearchResponseTuple.class);
+			
+			if (naverSearchResponseTuple != null && StringUtils.equals(naverSearchResponseTuple.getStatus(), "OK")) {
+				List<NaverPlaceResponseTuple> places = naverSearchResponseTuple.getPlaces();
+				
+				if (CollectionUtils.isNotEmpty(places)) {
+					places.forEach(s -> {
+						String name = s.getName();
+						
+						if ( !this.isExcludeName(name) ) {
+							String address = s.getRoad_address();
+							String telNo = s.getPhone_number();
+							String distance = s.getDistance();
+							
+							System.out.println(name + " " + address + " " + telNo + " " + distance );
+							
+						};
+					});
+				}
+			}
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 		
 		return null;
+	}
+	
+
+	/**
+	 * 마트명 중 제외처리되어야 할 명칭이 있는지 확인
+	 * @param martName
+	 * @return
+	 */
+	private Boolean isExcludeName(String martName) {
+		return ExcludedMartNameConstants.excludedMartNames.contains(martName);
 	}
 	
 	/**
