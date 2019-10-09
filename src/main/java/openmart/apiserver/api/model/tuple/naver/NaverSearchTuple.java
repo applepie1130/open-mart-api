@@ -16,18 +16,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NaverPlaceResponseTuple implements Serializable {
+public class NaverSearchTuple implements Serializable {
 	
-	private static final long serialVersionUID = 2778288225821507384L;
+	private static final long serialVersionUID = 2714057384838800155L;
 	
 	private String name;
-	private String road_address;
-	private String jibun_address;
-	private String phone_number;
-	private String x;
-	private String y;
+	private String address;
+	private String telNo;
 	private BigDecimal distance;
-	private String sessionId;
 	
 }
 

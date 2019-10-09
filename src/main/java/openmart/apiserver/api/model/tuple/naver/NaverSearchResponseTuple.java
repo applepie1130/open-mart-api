@@ -3,6 +3,7 @@ package openmart.apiserver.api.model.tuple.naver;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -20,7 +21,7 @@ public class NaverSearchResponseTuple implements Serializable {
 	
 	private static final long serialVersionUID = 5600639064791771578L;
 	private String status;
-	private String meta;
+	private Map<String, String> meta;
 	private List<NaverPlaceResponseTuple> places;
 }
 

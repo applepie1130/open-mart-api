@@ -1,7 +1,9 @@
 package openmart.apiserver.api.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -34,8 +38,11 @@ import openmart.apiserver.api.model.tuple.lottemart.LotteMartResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartSubResponseTuple;
 import openmart.apiserver.api.model.tuple.naver.NaverPlaceResponseTuple;
 import openmart.apiserver.api.model.tuple.naver.NaverSearchResponseTuple;
+import openmart.apiserver.api.model.tuple.naver.NaverSearchTuple;
+import openmart.apiserver.api.model.type.CostcoConstants;
 import openmart.apiserver.api.model.type.EmartConstants;
 import openmart.apiserver.api.model.type.ExcludedMartNameConstants;
+import openmart.apiserver.api.model.type.HomeplusConstants;
 import openmart.apiserver.api.model.type.LotteMartConstants;
 import openmart.apiserver.api.model.type.NaverConstants;
 
@@ -45,6 +52,10 @@ public class MartService {
 	
 	@Autowired
 	private FileCommonUtils fileCommonUtils;
+	
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+			.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
+			.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 	
 	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
@@ -62,24 +73,67 @@ public class MartService {
 			// TODO:에러처리
 		}
 		
-		NaverSearchResponseTuple naverSearchResponseTuple = this.callNaverApi(latitude, longitude, martName);
+		List<NaverSearchTuple> searchResult = new ArrayList<>(); 
 		
-//		if (StringUtils.isNotBlank(martName)) {
-//			// 마트 이름이 있는경우
-//			
-//			// 위치기반 네이버API호출
-//			NaverSearchResponseTuple naverSearchResponseTuple = this.callNaverApi(latitude, longitude, martName);
-//			
-//			
-//		} else { 
-//			// 마트이름이 없는경우, 대형마트 정보 전체 조회
-//			
-//			// 위치기반 네이버API호출
-//			NaverSearchResponseTuple emartSearchResponseTuple = this.callNaverApi(longitude, latitude, EmartConstants.name);
-//			NaverSearchResponseTuple lotteSearchMartResponseTuple = this.callNaverApi(longitude, latitude, LotteMartConstants.name);
-//			NaverSearchResponseTuple homeplusSearchResponseTuple = this.callNaverApi(longitude, latitude, HomeplusConstants.name);
-//			NaverSearchResponseTuple costcoSearchResponseTuple = this.callNaverApi(longitude, latitude, CostcoConstants.name);
-//		}
+		/**
+		 * 위치기반 마트정보 조회 (Naver Place Search API)
+		 */
+		if (StringUtils.isNotBlank(martName)) { /** 마트 이름이 있는경우 **/
+			// 위치기반 네이버API호출
+			searchResult = this.callNaverApi(latitude, longitude, martName);
+			
+		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/ 
+			// 위치기반 네이버API호출
+			searchResult.addAll(this.callNaverApi(longitude, latitude, EmartConstants.name));
+			searchResult.addAll(this.callNaverApi(longitude, latitude, LotteMartConstants.name));
+			searchResult.addAll(this.callNaverApi(longitude, latitude, HomeplusConstants.name));
+			searchResult.addAll(this.callNaverApi(longitude, latitude, CostcoConstants.name));
+		}
+		
+		/**
+		 * 마트별 휴일정보조회
+		 */
+		// 이마트
+		Map<String, Object> emartHolidaysInfo = fileCommonUtils.readFileFromJSONMap(EmartConstants.filePath);
+		
+		// 롯데마트
+		Map<String, Object> looteMartHolidaysInfo = fileCommonUtils.readFileFromJSONMap(LotteMartConstants.filePath);
+		
+		// 공통휴일정보
+				
+		
+		searchResult.forEach(s -> {
+			String key = s.getTelNo();
+			
+			Map<String, Object> emartObject = (Map<String, Object>) emartHolidaysInfo.get(key);
+			Map<String, Object> lotterMartObject = (Map<String, Object>) looteMartHolidaysInfo.get(key);
+			MartHolidayDetailTuple emartTuple = null;
+			MartHolidayDetailTuple lotterMartTuple = null;
+			
+			if (emartObject != null) {
+				emartTuple = OBJECT_MAPPER.convertValue(emartObject, MartHolidayDetailTuple.class);
+			}
+			
+			if (lotterMartObject != null) {
+				lotterMartTuple = OBJECT_MAPPER.convertValue(lotterMartObject, MartHolidayDetailTuple.class);
+			}
+			
+			if (log.isDebugEnabled()) {
+				log.debug("emartTuple : {}", emartTuple);
+				log.debug("lotterMartTuple : {}", lotterMartTuple);
+			}
+			
+			String name = s.getName();
+			String telNo = s.getTelNo();
+			String address = s.getAddress();
+			BigDecimal distance = s.getDistance();
+			
+			// TODO : ING
+			
+		});
+		
+		// 거리순으로 sort
+		
 	}
 	
 	/**
@@ -89,45 +143,59 @@ public class MartService {
 	 * @param martName
 	 * @return
 	 */
-	private NaverSearchResponseTuple callNaverApi(String latitude, String longitude, String martName) {
+	private List<NaverSearchTuple> callNaverApi(String latitude, String longitude, String martName) {
 		
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-		RestTemplate restTemplate = new RestTemplate();
-		UriComponentsBuilder mainBuilder = UriComponentsBuilder.fromHttpUrl(NaverConstants.apiUrl)
-															   .queryParam("query", martName)
-															   .queryParam("coordinate", longitude+","+latitude); // "경도,위도" 형식
+		List<NaverSearchTuple> result = new ArrayList<>();
 		
-		String uri = mainBuilder.toUriString();
-		
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("X-NCP-APIGW-API-KEY-ID", NaverConstants.X_NCP_APIGW_API_KEY_ID);
-		headers.add("X-NCP-APIGW-API-KEY", NaverConstants.X_NCP_APIGW_API_KEY);
-		
-		ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<Object>(headers), String.class);
-		String body = response.getBody();
+		//TODO : 확인용변수
+		Map<String, Object> before = new HashMap<String, Object>();
+		Map<String, Object> after = new HashMap<String, Object>();
 		
 		try {
+			RestTemplate restTemplate = new RestTemplate();
+			UriComponents mainBuilder = UriComponentsBuilder.fromHttpUrl(NaverConstants.apiUrl)
+															.queryParam("query", martName)
+															.queryParam("coordinate", longitude+","+latitude) // "경도,위도" 형식
+															.build(false);
+			
+			String uri = mainBuilder.toUriString();
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("X-NCP-APIGW-API-KEY-ID", NaverConstants.X_NCP_APIGW_API_KEY_ID);
+			headers.add("X-NCP-APIGW-API-KEY", NaverConstants.X_NCP_APIGW_API_KEY);
+			
+			final HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, httpEntity, String.class);        
+			String body = response.getBody();
+			
 			if ( StringUtils.isBlank(body) ) {
 				return null;
 			}
 			
-			NaverSearchResponseTuple naverSearchResponseTuple = mapper.readValue(body, NaverSearchResponseTuple.class);
+			NaverSearchResponseTuple naverSearchResponseTuple = OBJECT_MAPPER.readValue(body, NaverSearchResponseTuple.class);
 			
-			if (naverSearchResponseTuple != null && StringUtils.equals(naverSearchResponseTuple.getStatus(), "OK")) {
+			if (naverSearchResponseTuple != null && StringUtils.equals(naverSearchResponseTuple.getStatus(), HttpStatus.OK.getReasonPhrase())) {
 				List<NaverPlaceResponseTuple> places = naverSearchResponseTuple.getPlaces();
 				
 				if (CollectionUtils.isNotEmpty(places)) {
 					places.forEach(s -> {
 						String name = s.getName();
+						String address = s.getRoad_address();
+						String telNo = StringUtils.replaceChars(s.getPhone_number(), "-", "");
+						BigDecimal distance = s.getDistance();
 						
-						if ( !this.isExcludeName(name) ) {
-							String address = s.getRoad_address();
-							String telNo = s.getPhone_number();
-							String distance = s.getDistance();
+						before.put(telNo, Arrays.asList(name, address));
+						
+						if ( this.isApplicableName(name) ) {
 							
-							System.out.println(name + " " + address + " " + telNo + " " + distance );
+							after.put(telNo, Arrays.asList(name, address));
 							
+							result.add(NaverSearchTuple.builder()
+									.name(name)
+									.address(address)
+									.telNo(telNo)
+									.distance(distance)
+									.build());
 						};
 					});
 				}
@@ -137,17 +205,29 @@ public class MartService {
 			log.error(e.getMessage(), e);
 		}
 		
-		return null;
+		if (log.isDebugEnabled()) {
+			log.debug("### 정제 전 응답 ###");
+			log.debug("{}", before);
+			log.debug("### 정제 후 응답 ###");
+			log.debug("{}", after);
+		}
+		
+		return result;
 	}
 	
-
 	/**
 	 * 마트명 중 제외처리되어야 할 명칭이 있는지 확인
 	 * @param martName
 	 * @return
 	 */
-	private Boolean isExcludeName(String martName) {
-		return ExcludedMartNameConstants.excludedMartNames.contains(martName);
+	private Boolean isApplicableName(String martName) {
+		boolean isExcludeAble = ExcludedMartNameConstants.excludedMartNames.stream()
+										.filter(s -> StringUtils.contains(martName, s))
+										.findFirst()
+										.isPresent();
+		boolean isIncludeAble = StringUtils.startsWithAny(martName, new String[] {EmartConstants.name, LotteMartConstants.name, HomeplusConstants.name, CostcoConstants.name});
+		
+		return (isExcludeAble == Boolean.FALSE && isIncludeAble == Boolean.TRUE); 
 	}
 	
 	/**
@@ -195,8 +275,6 @@ public class MartService {
 		LocalDateTime currentDateTime = LocalDateTime.now();
 		int year = currentDateTime.getYear();
 		int month = currentDateTime.getMonthValue();
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
 		RestTemplate restTemplate = new RestTemplate();
 		
 		EmartConstants.areaCodeList.forEach(s -> {
@@ -213,7 +291,7 @@ public class MartService {
 			ResponseEntity<String> response = restTemplate.postForEntity(EmartConstants.apiUrl, request, String.class);
 			String body = response.getBody();
 			try {
-				EmartResponseTuple readValue = mapper.readValue(body, new TypeReference<EmartResponseTuple>() {});
+				EmartResponseTuple readValue = OBJECT_MAPPER.readValue(body, new TypeReference<EmartResponseTuple>() {});
 				
 				if (log.isDebugEnabled()) {
 					log.debug("#### EMART API RESULT ####");
@@ -257,9 +335,6 @@ public class MartService {
 		
 		Map<String, MartHolidayDetailTuple> result = new HashMap<String, MartHolidayDetailTuple>();
 		
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-
 		RestTemplate restTemplate = new RestTemplate();
 		
 		LotteMartConstants.regionCodeList.forEach(s -> {
@@ -275,7 +350,7 @@ public class MartService {
 			}
 			
 			try {
-				LotteMartResponseTuple lotteMartResponseTuple = mapper.readValue(response, new TypeReference<LotteMartResponseTuple>() {});
+				LotteMartResponseTuple lotteMartResponseTuple = OBJECT_MAPPER.readValue(response, new TypeReference<LotteMartResponseTuple>() {});
 
 				if (lotteMartResponseTuple != null) {
 					List<LotteMartDetailResponseTuple> list = lotteMartResponseTuple.getData();
@@ -287,7 +362,7 @@ public class MartService {
 						String subResponse = restTemplate.getForObject(subApiBuilder.toUriString(), String.class);
 
 						try {
-							LotteMartSubResponseTuple lotteMartSubResponseTuple = (LotteMartSubResponseTuple) mapper.readValue(subResponse, new TypeReference<LotteMartSubResponseTuple>() {});
+							LotteMartSubResponseTuple lotteMartSubResponseTuple = (LotteMartSubResponseTuple) OBJECT_MAPPER.readValue(subResponse, new TypeReference<LotteMartSubResponseTuple>() {});
 							if (log.isDebugEnabled()) {
 								log.debug("#### LotteMart API RESULT ####");
 								log.debug("{}", subResponse);
@@ -339,26 +414,4 @@ public class MartService {
 	private Map<String, MartHolidayDetailTuple> getCostcoMartHolidayInfo() {
 		return null;
 	}
-	
-	
-//	public static void main(String[] args) {
-//		LocalDateTime currentDateTime = LocalDateTime.now();
-//		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
-//		
-//		Calendar c = Calendar.getInstance();
-//		Integer year = currentDateTime.getYear();
-//		Integer month = currentDateTime.getMonthValue();
-//		c.set(Calendar.YEAR, year);
-//		c.set(Calendar.MONTH, month+1);
-//		c.set(Calendar.WEEK_OF_MONTH, 3);
-//		c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-//		System.out.println(formatter.format(c.getTime()));
-//		
-//		c = Calendar.getInstance();
-//		c.set(Calendar.YEAR, year);
-//		c.set(Calendar.MONTH, month+1);
-//		c.set(Calendar.WEEK_OF_MONTH, 5);
-//		c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-//		System.out.println(formatter.format(c.getTime()));
-//	}
 }

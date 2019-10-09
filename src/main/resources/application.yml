@@ -3,7 +3,16 @@ server:
   port: 8081
 
 
+spring:
+  output:
+    ansi:
+      enabled: always
+      
 logging:
+  level:
+    openmart:
+      apiserver:
+        api: DEBUG
   path: "/tank0/logs"
 #  level:
 #    root: error  
