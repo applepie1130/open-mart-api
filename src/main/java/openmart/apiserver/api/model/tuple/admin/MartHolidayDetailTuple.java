@@ -1,5 +1,5 @@
 
-package openmart.apiserver.api.model.tuple;
+package openmart.apiserver.api.model.tuple.admin;
 
 import java.io.Serializable;
 import java.util.List;

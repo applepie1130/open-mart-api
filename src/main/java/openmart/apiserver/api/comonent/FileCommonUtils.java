@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
-import openmart.apiserver.api.model.tuple.MartHolidayDetailTuple;
+import openmart.apiserver.api.model.tuple.admin.MartHolidayDetailTuple;
 
 @Slf4j
 @Component

@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
+import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
 import openmart.apiserver.api.service.MartService;
 
 @Api(tags = "MartAPIController", value = "마트정보 API", produces = "application/json")
@@ -34,13 +35,12 @@ public class MartAPIContoller {
 			response = Map.class
 			)
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = "latitude", value = "위도", required = true, dataType = "string", paramType = "query", example = "37.523877"),
-		@ApiImplicitParam(name = "longitude", value = "경도", required = true, dataType = "string", paramType = "query", example = "127.296313"),
+		@ApiImplicitParam(name = "latitude", value = "위도", required = true, dataType = "string", paramType = "query", example = "37.4967885"),
+		@ApiImplicitParam(name = "longitude", value = "경도", required = true, dataType = "string", paramType = "query", example = "127.0272884"),
 		@ApiImplicitParam(name = "martName", value = "마트명", required = false, dataType = "string", paramType = "query", example = "이마트")
 	})
-	public List<Map> findMartHolidayInfos (@ModelAttribute MartSearchCriteria martSearchCriteria) {
-		martService.findMartHolidayInfos(martSearchCriteria);
-		return null;
+	public List<MartHolidayInfosTuple> findMartHolidayInfos (@ModelAttribute MartSearchCriteria martSearchCriteria) {
+		return martService.findMartHolidayInfos(martSearchCriteria);
 	}
 	
 	@PostMapping(path="/martHolidayInfos")

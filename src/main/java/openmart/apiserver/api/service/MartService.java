@@ -1,12 +1,19 @@
 package openmart.apiserver.api.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +38,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import openmart.apiserver.api.comonent.FileCommonUtils;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
-import openmart.apiserver.api.model.tuple.MartHolidayDetailTuple;
+import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
+import openmart.apiserver.api.model.tuple.admin.MartHolidayDetailTuple;
 import openmart.apiserver.api.model.tuple.emart.EmartResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartDetailResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartResponseTuple;
@@ -57,12 +65,13 @@ public class MartService {
 			.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
 			.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 	
+	
 	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
 	 * 네이버 API 위치정보 판단<p>
 	 * 사전생성된 마트별 휴일정보 전화번호를 통한 조회
 	 */
-	public void findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
+	public List<MartHolidayInfosTuple> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
 		
 		String latitude = martSearchCriteria.getLatitude();
 		String longitude = martSearchCriteria.getLongitude();
@@ -84,10 +93,10 @@ public class MartService {
 			
 		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/ 
 			// 위치기반 네이버API호출
-			searchResult.addAll(this.callNaverApi(longitude, latitude, EmartConstants.name));
-			searchResult.addAll(this.callNaverApi(longitude, latitude, LotteMartConstants.name));
-			searchResult.addAll(this.callNaverApi(longitude, latitude, HomeplusConstants.name));
-			searchResult.addAll(this.callNaverApi(longitude, latitude, CostcoConstants.name));
+			searchResult.addAll(this.callNaverApi(latitude,longitude, EmartConstants.name));
+			searchResult.addAll(this.callNaverApi(latitude,longitude, LotteMartConstants.name));
+			searchResult.addAll(this.callNaverApi(latitude,longitude, HomeplusConstants.name));
+			searchResult.addAll(this.callNaverApi(latitude,longitude, CostcoConstants.name));
 		}
 		
 		/**
@@ -99,8 +108,8 @@ public class MartService {
 		// 롯데마트
 		Map<String, Object> looteMartHolidaysInfo = fileCommonUtils.readFileFromJSONMap(LotteMartConstants.filePath);
 		
-		// 공통휴일정보
-				
+		List<MartHolidayInfosTuple> result = new ArrayList<>();
+		List<MartHolidayInfosTuple> sortedResult = new ArrayList<>();
 		
 		searchResult.forEach(s -> {
 			String key = s.getTelNo();
@@ -123,18 +132,52 @@ public class MartService {
 				log.debug("lotterMartTuple : {}", lotterMartTuple);
 			}
 			
-			String name = s.getName();
-			String telNo = s.getTelNo();
-			String address = s.getAddress();
+			String holidaysInfo = "";
+			if (emartTuple != null) {
+				holidaysInfo = emartTuple.getHolidayInfos();
+			} else if (lotterMartTuple != null) {
+				holidaysInfo = lotterMartTuple.getHolidayInfos();
+			} else if (s.getName().contains(HomeplusConstants.name) || s.getName().contains(CostcoConstants.name)){
+				holidaysInfo = "매월 둘째, 넷째 일요일 의무 휴무";
+			} else {
+				return;
+			}
+			
 			BigDecimal distance = s.getDistance();
+			String displayDistance = "";
+			if (distance.compareTo(BigDecimal.valueOf(1000)) >= 0) {
+				displayDistance = distance.divide(BigDecimal.valueOf(1000)).setScale(2, RoundingMode.CEILING) + "km";
+			} else {
+				displayDistance = distance.setScale(0, RoundingMode.CEILING) + "m";
+			}
 			
-			// TODO : ING
-			
+			result.add(MartHolidayInfosTuple.builder()
+					.name(s.getName())
+					.telNo(s.getTelNo())
+					.address(s.getAddress())
+					.distance(s.getDistance())
+					.displayDistance(displayDistance)
+					.holidaysInfo(holidaysInfo)
+					.latitude(s.getLatitude())
+					.longitiude(s.getLongitiude())
+					.build());
 		});
 		
 		// 거리순으로 sort
+		if (CollectionUtils.isNotEmpty(result)) {
+			sortedResult = result.stream()
+								 .sorted(Comparator.comparing(MartHolidayInfosTuple::getDistance))
+								 .collect(Collectors.toList());
+		}
 		
+		if (log.isDebugEnabled()) {
+			log.debug("### sortedResult ###");
+			log.debug("{}", sortedResult);
+		}
+		
+		return sortedResult;
 	}
+	
 	
 	/**
 	 * 네이버 조회API 호출
@@ -195,6 +238,8 @@ public class MartService {
 									.address(address)
 									.telNo(telNo)
 									.distance(distance)
+									.latitude(s.getY())
+									.longitiude(s.getX())
 									.build());
 						};
 					});
@@ -268,13 +313,15 @@ public class MartService {
 	 * 이마트 휴일정보 생성을 위한 조회
 	 * @return
 	 */
-	private Map<String, MartHolidayDetailTuple> getEmartHolidayInfo() {
+	private Map<String, MartHolidayDetailTuple> getEmartHolidayInfo() throws ParseException {
 		
 		Map<String, MartHolidayDetailTuple> result = new HashMap<String, MartHolidayDetailTuple>();
 		
 		LocalDateTime currentDateTime = LocalDateTime.now();
 		int year = currentDateTime.getYear();
 		int month = currentDateTime.getMonthValue();
+		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+		
 		RestTemplate restTemplate = new RestTemplate();
 		
 		EmartConstants.areaCodeList.forEach(s -> {
@@ -305,11 +352,30 @@ public class MartService {
 						
 						if (StringUtils.isNotBlank(telNo)) {
 							List<String> holidayYYYYMMDD = new ArrayList<String>();
-							holidayYYYYMMDD.add(t.get("HOLIDAY_DAY1_YMD"));
-							holidayYYYYMMDD.add(t.get("HOLIDAY_DAY2_YMD"));
+							
+							SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+							SimpleDateFormat displayFormat = new SimpleDateFormat("MM/dd");
+						
+							Date date;
+							String day1 = "";
+							String day2 = "";
+							
+							try {
+								date = dateFormat.parse(t.get("HOLIDAY_DAY1_YMD"));
+								day1 = displayFormat.format(date);
+							
+								date = dateFormat.parse(t.get("HOLIDAY_DAY2_YMD"));
+								day2 = displayFormat.format(date);
+							} catch (ParseException e) {
+								log.error(e.getMessage(), e);
+							}
+							
+							holidayYYYYMMDD.add(day1);
+							holidayYYYYMMDD.add(day2);
 							
 							result.put(telNo, MartHolidayDetailTuple.builder()
 									.holidayYYYYMMDD(holidayYYYYMMDD)
+									.holidayInfos(day1 + ", " + day2)
 									.telno(telNo)
 									.region(t.get("AREA"))
 									.martName(EmartConstants.name)
@@ -413,5 +479,15 @@ public class MartService {
 	 */
 	private Map<String, MartHolidayDetailTuple> getCostcoMartHolidayInfo() {
 		return null;
+	}
+
+	public static void main(String[] args) {
+//		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyyMMdd");
+//		DateTimeFormatter displayPattern = DateTimeFormatter.ofPattern("MM/dd");
+//		LocalDateTime.parse("20191013", pattern);
+
+		String format = LocalDateTime.parse("2017-01-01 12:30:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+		.format(DateTimeFormatter.ofPattern("MM/dd"));
+		System.out.println(format);
 	}
 }

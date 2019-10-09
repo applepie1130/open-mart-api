@@ -5,6 +5,8 @@ import java.util.List;
 
 public class LotteMartConstants {
 
+	public static final String code = "lottemart";
+	
 	public static final String name = "롯데마트";
 	
 	public static final String apiUrl = "http://company.lottemart.com/bc/branch/regnstorelist.json";
@@ -15,6 +17,6 @@ public class LotteMartConstants {
 																	"BC0106", "BC0107", "BC0108", "BC0109", "BC0110",
 																	"BC0111", "BC0112", "BC0113", "BC0114", "BC0116");
 	
-	public static final String filePath = "/tank0/holidays/lotteMart.json";
+	public static final String filePath = "/tank0/holidays/lottemart.json";
 
 }
