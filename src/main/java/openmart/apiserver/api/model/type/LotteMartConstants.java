@@ -17,6 +17,6 @@ public class LotteMartConstants {
 																	"BC0106", "BC0107", "BC0108", "BC0109", "BC0110",
 																	"BC0111", "BC0112", "BC0113", "BC0114", "BC0116");
 	
-	public static final String filePath = "/tank0/holidays/lottemart.json";
+	public static final String filePath = "/home/ec2-user/tank0/holidays/lottemart.json";
 
 }
