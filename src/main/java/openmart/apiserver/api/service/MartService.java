@@ -2,6 +2,7 @@ package openmart.apiserver.api.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -88,6 +89,14 @@ public class MartService {
 		 * 위치기반 마트정보 조회 (Naver Place Search API)
 		 */
 		if (StringUtils.isNotBlank(martName)) { /** 마트 이름이 있는경우 **/
+			try {
+				martName = URLDecoder.decode(martName, "UTF-8");
+			} catch (Exception e) {
+				if (log.isErrorEnabled()) {
+					log.error(e.getMessage(), e);
+				}
+			}
+			
 			// 위치기반 네이버API호출
 			searchResult = this.callNaverApi(latitude, longitude, martName);
 			
