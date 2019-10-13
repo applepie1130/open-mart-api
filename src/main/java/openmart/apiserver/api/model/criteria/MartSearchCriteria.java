@@ -2,7 +2,6 @@
 package openmart.apiserver.api.model.criteria;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 import org.apache.commons.lang3.StringUtils;
