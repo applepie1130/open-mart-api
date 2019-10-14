@@ -245,7 +245,7 @@ public class MartService {
 							result.add(NaverSearchTuple.builder()
 									.name(name)
 									.address(address)
-									.telNo(telNo)
+									.telNo(s.getPhone_number())
 									.distance(distance)
 									.latitude(s.getY())
 									.longitiude(s.getX())
@@ -488,15 +488,5 @@ public class MartService {
 	 */
 	private Map<String, MartHolidayDetailTuple> getCostcoMartHolidayInfo() {
 		return null;
-	}
-
-	public static void main(String[] args) {
-//		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyyMMdd");
-//		DateTimeFormatter displayPattern = DateTimeFormatter.ofPattern("MM/dd");
-//		LocalDateTime.parse("20191013", pattern);
-
-		String format = LocalDateTime.parse("2017-01-01 12:30:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-		.format(DateTimeFormatter.ofPattern("MM/dd"));
-		System.out.println(format);
 	}
 }
