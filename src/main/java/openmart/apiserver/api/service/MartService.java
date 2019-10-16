@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import openmart.apiserver.api.comonent.FileCommonUtils;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
+import openmart.apiserver.api.model.tuple.LocationsTuple;
 import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
 import openmart.apiserver.api.model.tuple.admin.MartHolidayDetailTuple;
 import openmart.apiserver.api.model.tuple.emart.EmartResponseTuple;
@@ -160,6 +161,16 @@ public class MartService {
 				displayDistance = distance.setScale(0, RoundingMode.CEILING) + "m";
 			}
 			
+			LocationsTuple martLocations = LocationsTuple.builder()
+				.longitiude(s.getLongitiude())
+				.latitude(s.getLatitude())
+				.build();
+			
+			LocationsTuple userLocations = LocationsTuple.builder()
+					.longitiude(longitude)
+					.latitude(latitude)
+					.build();
+			
 			result.add(MartHolidayInfosTuple.builder()
 					.name(s.getName())
 					.telNo(s.getTelNo())
@@ -167,8 +178,8 @@ public class MartService {
 					.distance(s.getDistance())
 					.displayDistance(displayDistance)
 					.holidaysInfo(holidaysInfo)
-					.latitude(s.getLatitude())
-					.longitiude(s.getLongitiude())
+					.martLocations(martLocations)
+					.userLocations(userLocations)
 					.build());
 		});
 		

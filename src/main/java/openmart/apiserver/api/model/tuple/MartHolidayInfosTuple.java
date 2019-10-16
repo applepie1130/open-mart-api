@@ -29,8 +29,8 @@ public class MartHolidayInfosTuple implements Serializable {
 	private BigDecimal distance;
 	private String displayDistance;
 	private String holidaysInfo;
-	private String latitude;
-	private String longitiude;
+	private LocationsTuple userLocations;
+	private LocationsTuple martLocations;
 	
 	public String getCode() {
 		if (StringUtils.isNotBlank(this.name)) {
