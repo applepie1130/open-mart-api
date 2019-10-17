@@ -162,13 +162,13 @@ public class MartService {
 			}
 			
 			LocationsTuple martLocations = LocationsTuple.builder()
-				.longitiude(s.getLongitiude())
-				.latitude(s.getLatitude())
-				.build();
+					.longitiude(new BigDecimal(s.getLongitiude()))
+					.latitude(new BigDecimal(s.getLatitude()))
+					.build();
 			
 			LocationsTuple userLocations = LocationsTuple.builder()
-					.longitiude(longitude)
-					.latitude(latitude)
+					.longitiude(new BigDecimal(longitude))
+					.latitude(new BigDecimal(latitude))
 					.build();
 			
 			result.add(MartHolidayInfosTuple.builder()
