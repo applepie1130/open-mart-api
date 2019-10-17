@@ -160,15 +160,15 @@ public class MartService {
 			} else {
 				displayDistance = distance.setScale(0, RoundingMode.CEILING) + "m";
 			}
-			
+			 
 			LocationsTuple martLocations = LocationsTuple.builder()
-					.longitiude(new BigDecimal(s.getLongitiude()))
-					.latitude(new BigDecimal(s.getLatitude()))
+					.longitude(s.getLongitude())
+					.latitude(s.getLatitude())
 					.build();
 			
 			LocationsTuple userLocations = LocationsTuple.builder()
-					.longitiude(new BigDecimal(longitude))
-					.latitude(new BigDecimal(latitude))
+					.longitude(longitude)
+					.latitude(latitude)
 					.build();
 			
 			result.add(MartHolidayInfosTuple.builder()
@@ -260,7 +260,7 @@ public class MartService {
 									.telNo(s.getPhone_number())
 									.distance(distance)
 									.latitude(s.getY())
-									.longitiude(s.getX())
+									.longitude(s.getX())
 									.build());
 						};
 					});

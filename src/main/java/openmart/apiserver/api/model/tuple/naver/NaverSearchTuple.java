@@ -26,6 +26,6 @@ public class NaverSearchTuple implements Serializable {
 	private String telNo;
 	private BigDecimal distance;
 	private String latitude; // y
-	private String longitiude; // x
+	private String longitude; // x
 }
 
