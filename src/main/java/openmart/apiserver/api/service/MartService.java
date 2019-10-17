@@ -122,7 +122,7 @@ public class MartService {
 		List<MartHolidayInfosTuple> sortedResult = new ArrayList<>();
 		
 		searchResult.forEach(s -> {
-			String key = s.getTelNo();
+			String key = s.getTelNoKey();
 			
 			Map<String, Object> emartObject = (Map<String, Object>) emartHolidaysInfo.get(key);
 			Map<String, Object> lotterMartObject = (Map<String, Object>) looteMartHolidaysInfo.get(key);
@@ -256,6 +256,7 @@ public class MartService {
 							result.add(NaverSearchTuple.builder()
 									.name(name)
 									.address(address)
+									.telNoKey(telNo)
 									.telNo(s.getPhone_number())
 									.distance(distance)
 									.latitude(s.getY())

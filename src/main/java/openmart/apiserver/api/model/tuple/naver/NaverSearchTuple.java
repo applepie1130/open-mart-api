@@ -22,6 +22,7 @@ public class NaverSearchTuple implements Serializable {
 	
 	private String name;
 	private String address;
+	private String telNoKey;
 	private String telNo;
 	private BigDecimal distance;
 	private String latitude; // y
