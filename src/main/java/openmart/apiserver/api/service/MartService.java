@@ -160,15 +160,20 @@ public class MartService {
 			} else {
 				displayDistance = distance.setScale(0, RoundingMode.CEILING) + "m";
 			}
-			 
+			
+			BigDecimal martLongitude = new BigDecimal(s.getLongitude());
+			BigDecimal martLatitude = new BigDecimal(s.getLatitude());
+			BigDecimal userLongitude = new BigDecimal(longitude);
+			BigDecimal userLatitude = new BigDecimal(latitude);
+			
 			LocationsTuple martLocations = LocationsTuple.builder()
-					.longitude(s.getLongitude())
-					.latitude(s.getLatitude())
+					.longitude(martLongitude)
+					.latitude(martLatitude)
 					.build();
 			
 			LocationsTuple userLocations = LocationsTuple.builder()
-					.longitude(longitude)
-					.latitude(latitude)
+					.longitude(userLongitude)
+					.latitude(userLatitude)
 					.build();
 			
 			result.add(MartHolidayInfosTuple.builder()

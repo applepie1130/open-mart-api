@@ -16,6 +16,6 @@ public class LocationsTuple implements Serializable {
 	
 	private static final long serialVersionUID = 6515821010931301713L;
 	
-	private String longitude;
-	private String latitude;
+	private BigDecimal longitude;
+	private BigDecimal latitude;
 }
