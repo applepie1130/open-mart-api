@@ -47,14 +47,18 @@ public class MartAPIContoller {
 		MartHolidayResponseTuple result = new MartHolidayResponseTuple();
 		List<MartHolidayInfosTuple> searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
 		
-		String message = "오픈마트에서 검색한 결과입니다.";
+		String message = "";
 		
-		if (CollectionUtils.isEmpty(searchMartList)) {
-			message = "검색된 마트정보가 없네요.";
-		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
-			message = martSearchCriteria.getMartName() + "으로(로) 검색된 결과입니다."; 
+		if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
+			message = martSearchCriteria.getMartName() + " 으로 검색된 결과입니다."; 
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
-			message = "주변에 있는 마트기준으로 검색된 결과입니다.";
+			message = "주변 마트기준으로 검색된 결과입니다.";
+			
+		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
+			message = martSearchCriteria.getMartName() + " 으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
+			
+		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
+			message = "검색된 마트정보가 없네요.";
 		}
 		
 		result.setSearchMartList(searchMartList);
