@@ -4,7 +4,9 @@ package openmart.apiserver.api.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +19,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
 import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
+import openmart.apiserver.api.model.tuple.MartHolidayResponseTuple;
 import openmart.apiserver.api.service.MartService;
 
 @Api(tags = "MartAPIController", value = "마트정보 API", produces = "application/json")
@@ -39,8 +42,25 @@ public class MartAPIContoller {
 		@ApiImplicitParam(name = "longitude", value = "경도", required = true, dataType = "string", paramType = "query", example = "127.0272884"),
 		@ApiImplicitParam(name = "martName", value = "마트명", required = false, dataType = "string", paramType = "query", example = "이마트")
 	})
-	public List<MartHolidayInfosTuple> findMartHolidayInfos (@ModelAttribute MartSearchCriteria martSearchCriteria) {
-		return martService.findMartHolidayInfos(martSearchCriteria);
+	public MartHolidayResponseTuple findMartHolidayInfos (@ModelAttribute MartSearchCriteria martSearchCriteria) {
+		
+		MartHolidayResponseTuple result = new MartHolidayResponseTuple();
+		List<MartHolidayInfosTuple> searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
+		
+		String message = "오픈마트에서 검색한 결과입니다.";
+		
+		if (CollectionUtils.isEmpty(searchMartList)) {
+			message = "검색된 마트정보가 없네요.";
+		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
+			message = martSearchCriteria.getMartName() + "으로(로) 검색된 결과입니다."; 
+		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
+			message = "주변에 있는 마트기준으로 검색된 결과입니다.";
+		}
+		
+		result.setSearchMartList(searchMartList);
+		result.setMessage(message);
+		
+		return result; 
 	}
 	
 	@PostMapping(path="/martHolidayInfos")
