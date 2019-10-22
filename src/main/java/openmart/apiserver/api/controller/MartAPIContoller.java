@@ -56,6 +56,9 @@ public class MartAPIContoller {
 			
 		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
 			message = martSearchCriteria.getMartName() + " 으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
+			// 근처 마트정보로 재조회
+			martSearchCriteria.setMartName(null);
+			searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
 			
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
 			message = "검색된 마트정보가 없네요.";

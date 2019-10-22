@@ -1,5 +1,6 @@
 package openmart.apiserver.api.service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLDecoder;
@@ -18,6 +19,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -148,7 +153,26 @@ public class MartService {
 			} else if (lotterMartTuple != null) {
 				holidaysInfo = lotterMartTuple.getHolidayInfos();
 			} else if (s.getName().contains(HomeplusConstants.name) || s.getName().contains(CostcoConstants.name)){
+				
+				// JSOUP 처리
+				String url = "https://m.map.naver.com/search2/site.nhn?query=" + s.getName() + "&sm=hty&style=v4&code=18580641";
 				holidaysInfo = "매월 둘째, 넷째 일요일 의무 휴무";
+				try {
+					Document doc = Jsoup.connect(url).get();
+
+					// 이용시간 파싱
+					Elements holidaysTag = doc.select("._detailInfo .end_list_info .end_list_basic li");
+					String holidayText = holidaysTag.select("span").text();
+					
+					if (StringUtils.isNotBlank(holidayText)) {
+						holidaysInfo = holidayText;
+					}
+					
+				} catch (IOException e) {
+					log.error(e.getMessage(), e);
+				}
+				
+				
 			} else {
 				return;
 			}
