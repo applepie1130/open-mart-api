@@ -430,7 +430,7 @@ public class MartService {
 							String holidayInfos = StringUtils.isNotBlank(day1) ? day1 : "";
 							
 							if (StringUtils.isNotBlank(holidayInfos)) {
-								holidayInfos += "," + (StringUtils.isNotBlank(day2) ? day2 : "");
+								holidayInfos += (StringUtils.isNotBlank(day2) ? "," + day2 : "");
 							} else {
 								holidayInfos = day2;
 							}
