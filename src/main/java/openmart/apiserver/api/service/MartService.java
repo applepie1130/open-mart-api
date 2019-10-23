@@ -21,7 +21,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -153,8 +152,10 @@ public class MartService {
 			} else if (lotterMartTuple != null) {
 				holidaysInfo = lotterMartTuple.getHolidayInfos();
 			} else if (s.getName().contains(HomeplusConstants.name) || s.getName().contains(CostcoConstants.name)){
+				holidaysInfo = "매월 둘째, 넷째 일요일 의무 휴무";
 				
 				// JSOUP 처리
+				/*
 				String url = "https://m.map.naver.com/search2/site.nhn?query=" + s.getName() + "&sm=hty&style=v4&code=18580641";
 				holidaysInfo = "매월 둘째, 넷째 일요일 의무 휴무";
 				try {
@@ -171,8 +172,7 @@ public class MartService {
 				} catch (IOException e) {
 					log.error(e.getMessage(), e);
 				}
-				
-				
+				*/
 			} else {
 				return;
 			}
@@ -413,7 +413,11 @@ public class MartService {
 							try {
 								date = dateFormat.parse(t.get("HOLIDAY_DAY1_YMD"));
 								day1 = displayFormat.format(date);
+							} catch (ParseException e) {
+								log.error(e.getMessage(), e);
+							}
 							
+							try {
 								date = dateFormat.parse(t.get("HOLIDAY_DAY2_YMD"));
 								day2 = displayFormat.format(date);
 							} catch (ParseException e) {
@@ -423,9 +427,17 @@ public class MartService {
 							holidayYYYYMMDD.add(day1);
 							holidayYYYYMMDD.add(day2);
 							
+							String holidayInfos = StringUtils.isNotBlank(day1) ? day1 : "";
+							
+							if (StringUtils.isNotBlank(holidayInfos)) {
+								holidayInfos += "," + (StringUtils.isNotBlank(day2) ? day2 : "");
+							} else {
+								holidayInfos = day2;
+							}
+							
 							result.put(telNo, MartHolidayDetailTuple.builder()
 									.holidayYYYYMMDD(holidayYYYYMMDD)
-									.holidayInfos(day1 + ", " + day2)
+									.holidayInfos(holidayInfos)
 									.telno(telNo)
 									.region(t.get("AREA"))
 									.martName(EmartConstants.name)
