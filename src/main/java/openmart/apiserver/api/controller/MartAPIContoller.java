@@ -53,9 +53,6 @@ public class MartAPIContoller {
 			if (searchMartList.size() > 1) {
 				message = "어떤 마트에 대해 알려줄까요?";
 				
-				// conversation driver setting
-				result.setOptionalConversation(Boolean.TRUE);
-				
 			} else {
 				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다.";	
 			}

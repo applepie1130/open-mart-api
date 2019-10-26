@@ -21,5 +21,4 @@ public class MartHolidayResponseTuple implements Serializable {
 	private static final long serialVersionUID = -876844924275520060L;
 	private List<MartHolidayInfosTuple> searchMartList;
 	private String message;
-	private boolean optionalConversation;
 }
