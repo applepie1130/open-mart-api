@@ -47,10 +47,6 @@ public class MartAPIContoller {
 		
 		MartHolidayResponseTuple result = new MartHolidayResponseTuple();
 		List<MartHolidayInfosTuple> searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
-		result.setConversation1("이마트 휴일정보 알려줘");
-		result.setConversation2("홈플러스 휴일정보 알려줘");
-		result.setConversation3("롯데마트 휴일정보 알려줘");
-		result.setConversation4("코스트코 휴일정보 알려줘");
 		String message = "";
 		
 		if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
@@ -58,10 +54,7 @@ public class MartAPIContoller {
 				message = "어떤 마트에 대해 알려줄까요?";
 				
 				// conversation driver setting
-				result.setConversation1("근처 마트 휴일정보 알려줘");
-				result.setConversation2("");
-				result.setConversation3("");
-				result.setConversation4("");
+				result.setOptionalConversation(Boolean.TRUE);
 				
 			} else {
 				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다.";	
