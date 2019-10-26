@@ -1,6 +1,7 @@
 
 package openmart.apiserver.api.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -46,19 +47,36 @@ public class MartAPIContoller {
 		
 		MartHolidayResponseTuple result = new MartHolidayResponseTuple();
 		List<MartHolidayInfosTuple> searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
-		
+		result.setConversation1("이마트 휴일정보 알려줘");
+		result.setConversation2("홈플러스 휴일정보 알려줘");
+		result.setConversation3("롯데마트 휴일정보 알려줘");
+		result.setConversation4("코스트코 휴일정보 알려줘");
 		String message = "";
 		
 		if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
-			message = martSearchCriteria.getMartName() + " 으로 검색된 결과입니다."; 
+			if (searchMartList.size() > 2) {
+				message = "어떤 마트에 대해 알려줄까요?";
+				
+				// conversation driver setting
+				result.setConversation1("근처 마트 휴일정보 알려줘");
+				result.setConversation2("");
+				result.setConversation3("");
+				result.setConversation4("");
+				
+			} else {
+				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다.";	
+			}
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
 			message = "주변 마트기준으로 검색된 결과입니다.";
 			
 		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
-			message = martSearchCriteria.getMartName() + " 으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
+			message = martSearchCriteria.getMartName() + "으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
 			// 근처 마트정보로 재조회
 			martSearchCriteria.setMartName(null);
 			searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
+			
+		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
+			message = "어떤 마트에 대해 알려줄까요?";
 			
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
 			message = "검색된 마트정보가 없네요.";
