@@ -54,7 +54,7 @@ public class MartAPIContoller {
 		String message = "";
 		
 		if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
-			if (searchMartList.size() > 2) {
+			if (searchMartList.size() > 1) {
 				message = "어떤 마트에 대해 알려줄까요?";
 				
 				// conversation driver setting
