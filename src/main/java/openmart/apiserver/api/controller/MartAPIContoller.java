@@ -1,7 +1,6 @@
 
 package openmart.apiserver.api.controller;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +44,15 @@ public class MartAPIContoller {
 	})
 	public MartHolidayResponseTuple findMartHolidayInfos (@ModelAttribute MartSearchCriteria martSearchCriteria) {
 		
+		if (StringUtils.isNotBlank(martSearchCriteria.getMartName())) {
+			if (!martSearchCriteria.getMartName().contains("롯데마트") && 
+					!martSearchCriteria.getMartName().contains("이마트") && 
+					!martSearchCriteria.getMartName().contains("코스트코") && 
+					!martSearchCriteria.getMartName().contains("홈플러스")) {
+				martSearchCriteria.setMartName("");
+			}
+		}
+		
 		MartHolidayResponseTuple result = new MartHolidayResponseTuple();
 		List<MartHolidayInfosTuple> searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
 		String message = "";
@@ -59,7 +67,7 @@ public class MartAPIContoller {
 				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다. " + name + "의 쉬는날은 " + holidaysInfo + "이네요.";	
 			}
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
-			message = "주변 마트기준으로 검색된 결과입니다.";
+			message = "근처 마트로 검색된 결과입니다.";
 			
 		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
 			message = martSearchCriteria.getMartName() + "으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
