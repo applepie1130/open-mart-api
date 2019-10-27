@@ -54,7 +54,8 @@ public class MartAPIContoller {
 				message = "어떤 마트에 대해 알려줄까요?";
 				
 			} else {
-				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다.";	
+				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
+				message = martSearchCriteria.getMartName() + "의 쉬는날은 " + holidaysInfo + "이네요.";	
 			}
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
 			message = "주변 마트기준으로 검색된 결과입니다.";
