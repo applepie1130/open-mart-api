@@ -145,8 +145,20 @@ public class MartService {
 			String holidaysInfo = "";
 			if (emartTuple != null) {
 				holidaysInfo = emartTuple.getHolidayInfos();
+				
+				// 일자처리
+				if (StringUtils.isNotBlank(holidaysInfo)) {
+					holidaysInfo = StringUtils.replaceChars(holidaysInfo, "/", "월").replace(",", "일, ") + "일";
+				}
+				
 			} else if (lotterMartTuple != null) {
 				holidaysInfo = lotterMartTuple.getHolidayInfos();
+				
+				// 일자처리
+				if (StringUtils.isNotBlank(holidaysInfo)) {
+					holidaysInfo = StringUtils.replaceChars(holidaysInfo, "/", "월").replace(", ", "일, ").replace(")", "일)");
+				}
+				
 			} else if (s.getName().contains(HomeplusConstants.name) || s.getName().contains(CostcoConstants.name)){
 				holidaysInfo = "매월 둘째, 넷째 일요일 의무 휴무";
 				
