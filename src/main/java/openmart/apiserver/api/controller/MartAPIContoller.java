@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
@@ -95,7 +96,10 @@ public class MartAPIContoller {
 			notes = "대형마트 정보에 대해 사전 데이터 생성",
 			response = String.class
 			)
-	public String saveMartHolidayInfos () {
-		return martService.saveMartHolidayInfos();
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "YYYYMMDD", value = "기준일자", required = true, dataType = "string", paramType = "query", example = "20191101")
+	})
+	public String saveMartHolidayInfos (String YYYYMMDD) {
+		return martService.saveMartHolidayInfos(YYYYMMDD);
 	}
 }

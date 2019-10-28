@@ -1,6 +1,5 @@
 package openmart.apiserver.api.service;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLDecoder;
@@ -19,9 +18,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -328,13 +324,13 @@ public class MartService {
 	/**
 	 * 마트별 휴일정보데이터 생성  
 	 */
-	public String saveMartHolidayInfos() {
+	public String saveMartHolidayInfos(String YYYYMMDD) {
 		
 		String resultCode = "OK";
 		
 		try {
 			// 이마트
-			Map<String, MartHolidayDetailTuple> emartHolidayInfo = this.getEmartHolidayInfo();
+			Map<String, MartHolidayDetailTuple> emartHolidayInfo = this.getEmartHolidayInfo(YYYYMMDD);
 			fileCommonUtils.writeFileToJSONMap(EmartConstants.filePath, emartHolidayInfo);
 			
 			// 롯데마트 
@@ -363,14 +359,23 @@ public class MartService {
 	 * 이마트 휴일정보 생성을 위한 조회
 	 * @return
 	 */
-	private Map<String, MartHolidayDetailTuple> getEmartHolidayInfo() throws ParseException {
+	private Map<String, MartHolidayDetailTuple> getEmartHolidayInfo(String YYYYMMDD) throws ParseException {
 		
 		Map<String, MartHolidayDetailTuple> result = new HashMap<String, MartHolidayDetailTuple>();
 		
-		LocalDateTime currentDateTime = LocalDateTime.now();
-		int year = currentDateTime.getYear();
-		int month = currentDateTime.getMonthValue();
+		int year;
+		int month;
 		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+		
+		if (StringUtils.isBlank(YYYYMMDD)) {
+			LocalDateTime currentDateTime = LocalDateTime.now();
+			year = currentDateTime.getYear();
+			month = currentDateTime.getMonthValue();
+		} else {
+			LocalDateTime currentDateTime = LocalDateTime.parse(YYYYMMDD + " 00:00:00", DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss"));
+			year = currentDateTime.getYear();
+			month = currentDateTime.getMonthValue();
+		}
 		
 		RestTemplate restTemplate = new RestTemplate();
 		
