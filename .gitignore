@@ -15,6 +15,11 @@ build/
 *.ear
 *.nar
 hs_err_pid*
+*.tmp
+*.bak
+*.swp
+bin/
+tmp/
 
 
 
