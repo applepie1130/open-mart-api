@@ -67,6 +67,7 @@ public class MartService {
 			.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
 			.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 	
+	private static final String FIXED_HOLIDAYS_INFO = "매월 둘째일, 넷째주 일요일 (11월10일, 11월24일)";
 	
 	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
@@ -160,7 +161,7 @@ public class MartService {
 				}
 				
 			} else if (s.getName().contains(HomeplusConstants.name) || s.getName().contains(CostcoConstants.name)){
-				holidaysInfo = "매월 둘째, 넷째 일요일 의무 휴무";
+				holidaysInfo = FIXED_HOLIDAYS_INFO;
 				
 				// JSOUP 처리
 				/*
