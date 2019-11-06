@@ -158,6 +158,7 @@ public class MartService {
 				// 일자처리
 				if (StringUtils.isNotBlank(holidaysInfo)) {
 					holidaysInfo = StringUtils.replaceChars(holidaysInfo, "/", "월").replace(", ", "일, ").replace(")", "일)");
+					holidaysInfo = StringUtils.replaceChars(holidaysInfo, "째일", "째주");
 				}
 				
 			} else if (s.getName().contains(HomeplusConstants.name) || s.getName().contains(CostcoConstants.name)){
