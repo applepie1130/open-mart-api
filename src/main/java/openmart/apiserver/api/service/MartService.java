@@ -401,7 +401,12 @@ public class MartService {
 			MultiValueMap<String, String> param = new LinkedMultiValueMap<>();
 			param.add("areaCd", s);
 			param.add("year", String.valueOf(year));
-			param.add("month", String.valueOf(month));
+			
+			if ( month < 10 ) {
+				param.add("month", "0" + String.valueOf(month));
+			} else {
+				param.add("month", String.valueOf(month));
+			}
 			
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, headers);
 			ResponseEntity<String> response = restTemplate.postForEntity(EmartConstants.apiUrl, request, String.class);
