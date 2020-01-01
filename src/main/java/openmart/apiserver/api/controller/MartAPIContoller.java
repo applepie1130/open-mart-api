@@ -97,7 +97,7 @@ public class MartAPIContoller {
 			response = String.class
 			)
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = "YYYYMMDD", value = "기준일자", required = true, dataType = "string", paramType = "query", example = "20191101")
+		@ApiImplicitParam(name = "YYYYMMDD", value = "기준일자", required = true, dataType = "string", paramType = "query", example = "20200201")
 	})
 	public String saveMartHolidayInfos (String YYYYMMDD) {
 		return martService.saveMartHolidayInfos(YYYYMMDD);
