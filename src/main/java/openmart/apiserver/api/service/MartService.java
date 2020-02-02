@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -58,8 +60,8 @@ import openmart.apiserver.api.model.type.NaverConstants;
 
 @Slf4j
 @Service
+@RefreshScope
 public class MartService {
-	
 	@Autowired
 	private FileCommonUtils fileCommonUtils;
 	
@@ -67,7 +69,8 @@ public class MartService {
 			.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
 			.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 	
-	private static final String FIXED_HOLIDAYS_INFO = "매월 둘째일, 넷째주 일요일 (1월12일, 1월26일)";
+	@Value("${FIXED_HOLIDAYS_INFO}")
+	private String FIXED_HOLIDAYS_INFO;
 	
 	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
@@ -75,6 +78,10 @@ public class MartService {
 	 * 사전생성된 마트별 휴일정보 전화번호를 통한 조회
 	 */
 	public List<MartHolidayInfosTuple> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
+		
+		log.info("############################");
+		log.info("FIXED_HOLIDAYS_INFO : {}", FIXED_HOLIDAYS_INFO);
+		log.info("############################");
 		
 		String latitude = martSearchCriteria.getLatitude();
 		String longitude = martSearchCriteria.getLongitude();
@@ -565,5 +572,13 @@ public class MartService {
 	 */
 	private Map<String, MartHolidayDetailTuple> getCostcoMartHolidayInfo() {
 		return null;
+	}
+	
+	public static void main(String[] args) {
+		String holidaysInfo = "매월 둘째, 넷째주 일요일 (01/12, 01/26)";
+		holidaysInfo = "1/8,1/25";
+		holidaysInfo = StringUtils.replaceChars(holidaysInfo, "/", "월").replace(", ", "일, ").replace(")", "일)");
+		holidaysInfo = StringUtils.replace(holidaysInfo, "째일,", "째주,");
+		System.out.println(holidaysInfo);
 	}
 }

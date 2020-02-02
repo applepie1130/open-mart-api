@@ -1,19 +1,11 @@
 
-server:
-  port: 8081
-
-
-spring:
-  output:
-    ansi:
-      enabled: always
-      
 logging:
   level:
     openmart:
       apiserver:
-        api: ERROR
-  path: "/home/ec2-user/tank0/logs"
+        api: DEBUG
+  #path: "/home/ec2-user/tank0/logs"
+  path: "/tank0/logs"
 #  level:
 #    root: error  
   
@@ -21,4 +13,11 @@ logging:
 #  resources:
 #    static-locations:
 #    - /swagger/
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "refresh"
 

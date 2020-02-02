@@ -1,0 +1,17 @@
+
+server:
+  port: 8081
+
+spring:
+  output:
+    ansi:
+      enabled: always
+      
+  application:
+    name: open-mart-api
+
+  cloud:
+    config:
+      uri:
+      - http://localhost:8888
+      - http://52.79.138.30:8888
