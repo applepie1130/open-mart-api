@@ -45,6 +45,9 @@ import openmart.apiserver.api.model.tuple.LocationsTuple;
 import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
 import openmart.apiserver.api.model.tuple.admin.MartHolidayDetailTuple;
 import openmart.apiserver.api.model.tuple.emart.EmartResponseTuple;
+import openmart.apiserver.api.model.tuple.kakao.KakaoPlaceResponseTuple;
+import openmart.apiserver.api.model.tuple.kakao.KakaoSearchResponseTuple;
+import openmart.apiserver.api.model.tuple.kakao.KakaoSearchTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartDetailResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartSubResponseTuple;
@@ -55,6 +58,7 @@ import openmart.apiserver.api.model.type.CostcoConstants;
 import openmart.apiserver.api.model.type.EmartConstants;
 import openmart.apiserver.api.model.type.ExcludedMartNameConstants;
 import openmart.apiserver.api.model.type.HomeplusConstants;
+import openmart.apiserver.api.model.type.KakaoConstants;
 import openmart.apiserver.api.model.type.LotteMartConstants;
 import openmart.apiserver.api.model.type.NaverConstants;
 
@@ -72,14 +76,23 @@ public class MartService {
 	@Value("${FIXED_HOLIDAYS_INFO}")
 	private String FIXED_HOLIDAYS_INFO;
 	
+	@Value("${test}")
+	private String test;
+	
+	@Value("${fileName}")
+	private String fileName;
+	
 	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
-	 * 네이버 API 위치정보 판단<p>
+	 * 카카오 API 위치정보 판단<p>
 	 * 사전생성된 마트별 휴일정보 전화번호를 통한 조회
 	 */
 	public List<MartHolidayInfosTuple> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
 		
 		log.info("############################");
+		log.info("test : {}", test);
+		log.info("fileName : {}", fileName);
+		
 		log.info("FIXED_HOLIDAYS_INFO : {}", FIXED_HOLIDAYS_INFO);
 		log.info("############################");
 		
@@ -92,11 +105,34 @@ public class MartService {
 			// TODO:에러처리
 		}
 		
-		List<NaverSearchTuple> searchResult = new ArrayList<>(); 
-		
 		/**
 		 * 위치기반 마트정보 조회 (Naver Place Search API)
 		 */
+//		List<NaverSearchTuple> searchResult = new ArrayList<>(); 
+//		if (StringUtils.isNotBlank(martName)) { /** 마트 이름이 있는경우 **/
+//			try {
+//				martName = URLDecoder.decode(martName, "UTF-8");
+//			} catch (Exception e) {
+//				if (log.isErrorEnabled()) {
+//					log.error(e.getMessage(), e);
+//				}
+//			}
+//			
+//			// 위치기반 네이버API호출
+//			searchResult = this.callNaverApi(latitude, longitude, martName);
+//			
+//		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/ 
+//			// 위치기반 네이버API호출
+//			searchResult.addAll(this.callNaverApi(latitude,longitude, EmartConstants.name));
+//			searchResult.addAll(this.callNaverApi(latitude,longitude, LotteMartConstants.name));
+//			searchResult.addAll(this.callNaverApi(latitude,longitude, HomeplusConstants.name));
+//			searchResult.addAll(this.callNaverApi(latitude,longitude, CostcoConstants.name));
+//		}
+//		
+		/**
+		 * 위치기반 마트정보 조회 (kakao keyword search API)
+		 */
+		List<KakaoSearchTuple> searchResult = new ArrayList<>();
 		if (StringUtils.isNotBlank(martName)) { /** 마트 이름이 있는경우 **/
 			try {
 				martName = URLDecoder.decode(martName, "UTF-8");
@@ -106,15 +142,15 @@ public class MartService {
 				}
 			}
 			
-			// 위치기반 네이버API호출
-			searchResult = this.callNaverApi(latitude, longitude, martName);
+			// 위치기반 카카오API호출
+			searchResult = this.callKakaoApi(latitude, longitude, martName);
 			
 		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/ 
 			// 위치기반 네이버API호출
-			searchResult.addAll(this.callNaverApi(latitude,longitude, EmartConstants.name));
-			searchResult.addAll(this.callNaverApi(latitude,longitude, LotteMartConstants.name));
-			searchResult.addAll(this.callNaverApi(latitude,longitude, HomeplusConstants.name));
-			searchResult.addAll(this.callNaverApi(latitude,longitude, CostcoConstants.name));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, EmartConstants.name));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, LotteMartConstants.name));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, HomeplusConstants.name));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, CostcoConstants.name));
 		}
 		
 		/**
@@ -123,7 +159,7 @@ public class MartService {
 		// 이마트
 		Map<String, Object> emartHolidaysInfo = fileCommonUtils.readFileFromJSONMap(EmartConstants.filePath);
 		
-		// 롯데마트
+		// 롯데마트 
 		Map<String, Object> looteMartHolidaysInfo = fileCommonUtils.readFileFromJSONMap(LotteMartConstants.filePath);
 		
 		List<MartHolidayInfosTuple> result = new ArrayList<>();
@@ -243,7 +279,90 @@ public class MartService {
 		
 		return sortedResult;
 	}
-	
+
+	 /**
+	  * 카카오 키워드 주소정보 조회 API 호출 
+	  * @param latitude
+	  * @param longitude
+	  * @param martName
+	  * @return
+	  */
+	private List<KakaoSearchTuple> callKakaoApi(String latitude, String longitude, String martName) {
+
+		List<KakaoSearchTuple> result = new ArrayList<>();
+		
+		//TODO : 확인용변수
+		Map<String, Object> before = new HashMap<String, Object>();
+		Map<String, Object> after = new HashMap<String, Object>();
+		
+		try {
+			RestTemplate restTemplate = new RestTemplate();
+			UriComponents mainBuilder = UriComponentsBuilder.fromHttpUrl(KakaoConstants.apiUrl)
+															.queryParam("query", martName)
+															.queryParam("x", longitude) // 경도
+															.queryParam("y", latitude) // 위도
+															.queryParam("radius", 20000) // 범위(m단위) 20km
+															.build(false);
+			
+			String uri = mainBuilder.toUriString();
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Authorization", KakaoConstants.KEY);
+			
+			final HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, httpEntity, String.class);        
+			String body = response.getBody();
+			
+			if ( StringUtils.isBlank(body) ) {
+				return null;
+			}
+			
+			KakaoSearchResponseTuple kakaoSearchResponseTuple = OBJECT_MAPPER.readValue(body, KakaoSearchResponseTuple.class);
+			
+			if (kakaoSearchResponseTuple != null) {
+				List<KakaoPlaceResponseTuple> places = kakaoSearchResponseTuple.getDocuments();
+				
+				if (CollectionUtils.isNotEmpty(places)) {
+					places.forEach(s -> {
+						String name = s.getPlace_name();
+						String address = s.getAddress_name();
+						String telNo = StringUtils.replaceChars(s.getPhone(), "-", "");
+						String distance = s.getDistance();
+						
+						before.put(telNo, Arrays.asList(name, address));
+						
+						if ( this.isApplicableName(name) ) {
+							
+							after.put(telNo, Arrays.asList(name, address));
+							
+							result.add(KakaoSearchTuple.builder()
+									.name(name)
+									.address(address)
+									.telNoKey(telNo)
+									.telNo(s.getPhone())
+									.distance(new BigDecimal(distance))
+									.latitude(s.getY())
+									.longitude(s.getX())
+									.build());
+						};
+					});
+				}
+			}
+			
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		
+		if (log.isDebugEnabled()) {
+			log.debug("### 정제 전 응답 ###");
+			log.debug("{}", before);
+			log.debug("### 정제 후 응답 ###");
+			log.debug("{}", after);
+		}
+		
+		return result;
+	}
+
 	
 	/**
 	 * 네이버 조회API 호출
@@ -579,6 +698,7 @@ public class MartService {
 		holidaysInfo = "1/8,1/25";
 		holidaysInfo = StringUtils.replaceChars(holidaysInfo, "/", "월").replace(", ", "일, ").replace(")", "일)");
 		holidaysInfo = StringUtils.replace(holidaysInfo, "째일,", "째주,");
+		
 		System.out.println(holidaysInfo);
 	}
 }

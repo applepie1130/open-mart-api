@@ -1,4 +1,3 @@
-
 server:
   port: 8081
 
@@ -15,3 +14,5 @@ spring:
       uri:
       - http://localhost:8888
       - http://52.79.138.30:8888
+      request-connect-timeout: 1000
+      request-read-timeout: 50000
