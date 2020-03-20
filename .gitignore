@@ -20,7 +20,8 @@ hs_err_pid*
 *.swp
 bin/
 tmp/
-
+/classes/
+/test-clasees/
 
 
 ### STS ###
