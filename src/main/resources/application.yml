@@ -1,6 +1,3 @@
-test : application-local.yml 
-
-
 
 logging:
   level:

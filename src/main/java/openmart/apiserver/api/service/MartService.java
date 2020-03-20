@@ -1,43 +1,8 @@
 package openmart.apiserver.api.service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.net.URLDecoder;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
 import openmart.apiserver.api.comonent.FileCommonUtils;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
@@ -54,13 +19,29 @@ import openmart.apiserver.api.model.tuple.lottemart.LotteMartSubResponseTuple;
 import openmart.apiserver.api.model.tuple.naver.NaverPlaceResponseTuple;
 import openmart.apiserver.api.model.tuple.naver.NaverSearchResponseTuple;
 import openmart.apiserver.api.model.tuple.naver.NaverSearchTuple;
-import openmart.apiserver.api.model.type.CostcoConstants;
-import openmart.apiserver.api.model.type.EmartConstants;
-import openmart.apiserver.api.model.type.ExcludedMartNameConstants;
-import openmart.apiserver.api.model.type.HomeplusConstants;
-import openmart.apiserver.api.model.type.KakaoConstants;
-import openmart.apiserver.api.model.type.LotteMartConstants;
-import openmart.apiserver.api.model.type.NaverConstants;
+import openmart.apiserver.api.model.type.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.net.URLDecoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -76,12 +57,6 @@ public class MartService {
 	@Value("${FIXED_HOLIDAYS_INFO}")
 	private String FIXED_HOLIDAYS_INFO;
 	
-	@Value("${test}")
-	private String test;
-	
-	@Value("${fileName}")
-	private String fileName;
-	
 	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
 	 * 카카오 API 위치정보 판단<p>
@@ -90,9 +65,6 @@ public class MartService {
 	public List<MartHolidayInfosTuple> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
 		
 		log.info("############################");
-		log.info("test : {}", test);
-		log.info("fileName : {}", fileName);
-		
 		log.info("FIXED_HOLIDAYS_INFO : {}", FIXED_HOLIDAYS_INFO);
 		log.info("############################");
 		
@@ -691,14 +663,5 @@ public class MartService {
 	 */
 	private Map<String, MartHolidayDetailTuple> getCostcoMartHolidayInfo() {
 		return null;
-	}
-	
-	public static void main(String[] args) {
-		String holidaysInfo = "매월 둘째, 넷째주 일요일 (01/12, 01/26)";
-		holidaysInfo = "1/8,1/25";
-		holidaysInfo = StringUtils.replaceChars(holidaysInfo, "/", "월").replace(", ", "일, ").replace(")", "일)");
-		holidaysInfo = StringUtils.replace(holidaysInfo, "째일,", "째주,");
-		
-		System.out.println(holidaysInfo);
 	}
 }

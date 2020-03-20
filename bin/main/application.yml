@@ -1,19 +1,9 @@
-
 logging:
   level:
     openmart:
       apiserver:
         api: DEBUG
-  #path: "/home/ec2-user/tank0/logs"
   path: "/tank0/logs"
-#  level:
-#    root: error  
-  
-#spring:
-#  resources:
-#    static-locations:
-#    - /swagger/
-
 
 management:
   endpoints:
@@ -21,3 +11,13 @@ management:
       exposure:
         include: "refresh, env"
 
+---
+spring:
+  profiles: stg,prd
+
+logging:
+  level:
+    openmart:
+      apiserver:
+        api: ERROR
+  path: "/home/ec2-user/tank0/logs"

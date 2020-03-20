@@ -13,6 +13,15 @@ spring:
     config:
       uri:
       - http://localhost:8888
-      - http://52.79.138.30:8888
+      request-connect-timeout: 1000
+      request-read-timeout: 50000
+
+---
+spring:
+  profiles: stg,prd
+  cloud:
+    config:
+      uri:
+        - http://52.79.138.30:8888
       request-connect-timeout: 1000
       request-read-timeout: 50000
