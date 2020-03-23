@@ -9,6 +9,7 @@ import openmart.apiserver.api.model.criteria.MartSearchCriteria;
 import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
 import openmart.apiserver.api.model.tuple.MartHolidayResponseTuple;
 import openmart.apiserver.api.service.MartService;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +36,8 @@ public class MartAPIContoller {
 	@ApiImplicitParams({
 		@ApiImplicitParam(name = "latitude", value = "위도", required = true, dataType = "string", paramType = "query", example = "37.4967885"),
 		@ApiImplicitParam(name = "longitude", value = "경도", required = true, dataType = "string", paramType = "query", example = "127.0272884"),
-		@ApiImplicitParam(name = "martName", value = "마트명", required = false, dataType = "string", paramType = "query", example = "이마트")
+		@ApiImplicitParam(name = "martName", value = "마트명", required = false, dataType = "string", paramType = "query", example = "이마트"),
+		@ApiImplicitParam(name = "isHandsfree", value = "핸즈프리여부", required = false, dataType = "boolean", paramType = "query", example = "false")
 	})
 	public MartHolidayResponseTuple findMartHolidayInfos (@ModelAttribute MartSearchCriteria martSearchCriteria) {
 		
@@ -65,10 +67,20 @@ public class MartAPIContoller {
 			message = "근처 마트로 검색된 결과입니다.";
 			
 		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
-			message = martSearchCriteria.getMartName() + "으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
 			// 근처 마트정보로 재조회
+			String searchName = martSearchCriteria.getMartName();
 			martSearchCriteria.setMartName(null);
 			searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
+
+			if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
+				String name = searchMartList.get(0).getName();
+				String distance = searchMartList.get(0).getDisplayDistance();
+				message = searchName + "으로 검색된 결과가 없네요, 대신 가장 가까운 마트정보로 알려줄게요. "
+						+ name + "의 쉬는날은 " + holidaysInfo + "이며, 현재 위치로부터 " + distance + " 거리에 있습니다.";
+			} else {
+				message = searchName + "으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
+			}
 			
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
 			message = "어떤 마트에 대해 알려줄까요?";

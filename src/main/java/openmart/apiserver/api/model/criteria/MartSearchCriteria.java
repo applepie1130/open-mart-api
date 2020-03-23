@@ -1,9 +1,9 @@
 
 package openmart.apiserver.api.model.criteria;
 
-import java.io.Serializable;
-
 import lombok.Data;
+
+import java.io.Serializable;
 
 @Data
 public class MartSearchCriteria implements Serializable {
@@ -13,5 +13,6 @@ public class MartSearchCriteria implements Serializable {
 	private String latitude; // 위도
 	private String longitude; // 경도
 	private String martName; // 마트명
+	private Boolean isHandsfree; // 핸즈프리여부
 }
 
