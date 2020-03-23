@@ -71,7 +71,15 @@ public class MartAPIContoller {
 			} else {
 				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 				String name = searchMartList.get(0).getName();
-				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다. " + name + "의 쉬는날은 " + holidaysInfo + "이네요.";	
+				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다. " + name + "의 쉬는날은 " + holidaysInfo + "이네요.";
+
+				// handsFree
+				String searchName = martSearchCriteria.getMartName();
+				if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+					String distance = searchMartList.get(0).getDisplayDistance();
+					message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다. "
+							+ name + "의 쉬는날은 " + holidaysInfo + "이며, 현재 위치로부터 " + distance + " 거리에 있습니다.";
+				}
 			}
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
 			message = "근처 마트로 검색된 결과입니다.";
