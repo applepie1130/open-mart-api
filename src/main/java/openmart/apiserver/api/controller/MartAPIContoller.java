@@ -52,11 +52,14 @@ public class MartAPIContoller {
 		
 		MartHolidayResponseTuple result = new MartHolidayResponseTuple();
 		List<MartHolidayInfosTuple> searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
+
+		StringBuffer sbf = new StringBuffer();
 		String message = "";
 		
 		if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
 			if (searchMartList.size() > 1) {
-				message = "어떤 마트에 대해 알려줄까요?";
+				// message default
+				sbf.append("어떤 마트에 대해 알려줄까요?");
 
 				// handsFree
 				String searchName = martSearchCriteria.getMartName();
@@ -64,25 +67,64 @@ public class MartAPIContoller {
 					String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 					String name = searchMartList.get(0).getName();
 					String distance = searchMartList.get(0).getDisplayDistance();
-					message = "가장 가까운 마트인 " + name + "으로 검색된 결과입니다. "
-							+ name + "의 쉬는날은 " + holidaysInfo + "이며, 현재 위치로부터 " + distance + " 거리에 있습니다.";
+					Boolean isOpen = searchMartList.get(0).getIsOpen();
+
+					sbf.setLength(0);
+					sbf.append("가장 가까운 마트인 ");
+					sbf.append(name);
+					sbf.append("으로 검색된 결과입니다. ");
+					sbf.append(name);
+					sbf.append("의 쉬는날은 ");
+					sbf.append(holidaysInfo);
+					sbf.append("이며,");
+					if (BooleanUtils.isTrue(isOpen)) {
+						sbf.append(" 오늘은 정상 영업일 입니다.");
+					} else {
+						sbf.append(" 오늘은 휴무일 입니다.");
+					}
+					sbf.append(" 현재 위치로부터 ");
+					sbf.append(distance);
+					sbf.append(" 거리에 있습니다.");
 				}
 
 			} else {
 				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 				String name = searchMartList.get(0).getName();
-				message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다. " + name + "의 쉬는날은 " + holidaysInfo + "이네요.";
+
+				sbf.setLength(0);
+				sbf.append(martSearchCriteria.getMartName());
+				sbf.append("으로 검색된 결과입니다. ");
+				sbf.append(name);
+				sbf.append("의 쉬는날은 ");
+				sbf.append(holidaysInfo);
+				sbf.append("이네요.");
 
 				// handsFree
 				String searchName = martSearchCriteria.getMartName();
 				if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
 					String distance = searchMartList.get(0).getDisplayDistance();
-					message = martSearchCriteria.getMartName() + "으로 검색된 결과입니다. "
-							+ name + "의 쉬는날은 " + holidaysInfo + "이며, 현재 위치로부터 " + distance + " 거리에 있습니다.";
+					Boolean isOpen = searchMartList.get(0).getIsOpen();
+
+					sbf.setLength(0);
+					sbf.append(martSearchCriteria.getMartName());
+					sbf.append("으로 검색된 결과입니다. ");
+					sbf.append(name);
+					sbf.append("의 쉬는날은 ");
+					sbf.append(holidaysInfo);
+					sbf.append("이며,");
+					if (BooleanUtils.isTrue(isOpen)) {
+						sbf.append(" 오늘은 정상 영업일 입니다.");
+					} else {
+						sbf.append(" 오늘은 휴무일 입니다.");
+					}
+					sbf.append(" 현재 위치로부터 ");
+					sbf.append(distance);
+					sbf.append(" 거리에 있습니다.");
 				}
 			}
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
-			message = "근처 마트로 검색된 결과입니다.";
+			sbf.setLength(0);
+			sbf.append("근처 마트로 검색된 결과입니다.");
 
 			// handsFree
 			String searchName = martSearchCriteria.getMartName();
@@ -90,8 +132,25 @@ public class MartAPIContoller {
 				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 				String name = searchMartList.get(0).getName();
 				String distance = searchMartList.get(0).getDisplayDistance();
-				message = "가장 가까운 마트인 " + name + "으로 검색된 결과입니다. "
-						+ name + "의 쉬는날은 " + holidaysInfo + "이며, 현재 위치로부터 " + distance + " 거리에 있습니다.";
+				Boolean isOpen = searchMartList.get(0).getIsOpen();
+
+				sbf.setLength(0);
+				sbf.setLength(0);
+				sbf.append("가장 가까운 마트인 ");
+				sbf.append(name);
+				sbf.append("으로 검색된 결과입니다. ");
+				sbf.append(name);
+				sbf.append("의 쉬는날은 ");
+				sbf.append(holidaysInfo);
+				sbf.append("이며,");
+				if (BooleanUtils.isTrue(isOpen)) {
+					sbf.append(" 오늘은 정상 영업일 입니다.");
+				} else {
+					sbf.append(" 오늘은 휴무일 입니다.");
+				}
+				sbf.append(" 현재 위치로부터 ");
+				sbf.append(distance);
+				sbf.append(" 거리에 있습니다.");
 			}
 			
 		} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
@@ -100,36 +159,70 @@ public class MartAPIContoller {
 			martSearchCriteria.setMartName(null);
 			searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
 
-			message = searchName + "으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.";
+			sbf.setLength(0);
+			sbf.append(searchName);
+			sbf.append("으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.");
 
 			// handsFree
 			if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
 				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 				String name = searchMartList.get(0).getName();
 				String distance = searchMartList.get(0).getDisplayDistance();
-				message = searchName + "으로 검색된 결과가 없네요, 대신 가장 가까운 마트정보로 알려줄게요. "
-						+ name + "의 쉬는날은 " + holidaysInfo + "이며, 현재 위치로부터 " + distance + " 거리에 있습니다.";
+				Boolean isOpen = searchMartList.get(0).getIsOpen();
+
+				sbf.setLength(0);
+				sbf.append(searchName);
+				sbf.append("으로 검색된 결과가 없네요, 대신 가장 가까운 마트정보로 알려줄게요. ");
+				sbf.append(name);
+				sbf.append("의 쉬는날은 ");
+				sbf.append(holidaysInfo);
+				sbf.append("이며,");
+				if (BooleanUtils.isTrue(isOpen)) {
+					sbf.append(" 오늘은 정상 영업일 입니다.");
+				} else {
+					sbf.append(" 오늘은 휴무일 입니다.");
+				}
+				sbf.append(" 현재 위치로부터 ");
+				sbf.append(distance);
+				sbf.append(" 거리에 있습니다.");
 			}
 			
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
-			message = "어떤 마트에 대해 알려줄까요?";
+			sbf.setLength(0);
+			sbf.append("어떤 마트에 대해 알려줄까요?");
 
 			// handsFree
-			String searchName = martSearchCriteria.getMartName();
 			if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
 				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 				String name = searchMartList.get(0).getName();
 				String distance = searchMartList.get(0).getDisplayDistance();
-				message = "가장 가까운 마트인 " + name + "으로 검색된 결과입니다. "
-						+ name + "의 쉬는날은 " + holidaysInfo + "이며, 현재 위치로부터 " + distance + " 거리에 있습니다.";
+				Boolean isOpen = searchMartList.get(0).getIsOpen();
+
+				sbf.setLength(0);
+				sbf.append("가장 가까운 마트인 ");
+				sbf.append(name);
+				sbf.append("으로 검색된 결과입니다. ");
+				sbf.append(name);
+				sbf.append("의 쉬는날은 ");
+				sbf.append(holidaysInfo);
+				sbf.append("이며,");
+				if (BooleanUtils.isTrue(isOpen)) {
+					sbf.append(" 오늘은 정상 영업일 입니다.");
+				} else {
+					sbf.append(" 오늘은 휴무일 입니다.");
+				}
+				sbf.append(" 현재 위치로부터 ");
+				sbf.append(distance);
+				sbf.append(" 거리에 있습니다.");
 			}
 			
 		} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(searchMartList)) {
-			message = "검색된 마트정보가 없네요.";
+			sbf.setLength(0);
+			sbf.append("검색된 마트정보가 없네요.");
 		}
 		
 		result.setSearchMartList(searchMartList);
-		result.setMessage(message);
+		result.setMessage(sbf.toString());
 		
 		return result; 
 	}

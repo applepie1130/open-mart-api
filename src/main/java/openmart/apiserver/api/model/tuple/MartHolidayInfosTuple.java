@@ -31,6 +31,7 @@ public class MartHolidayInfosTuple implements Serializable {
 	private String holidaysInfo;
 	private LocationsTuple userLocations;
 	private LocationsTuple martLocations;
+	private Boolean isOpen;
 	
 	public String getCode() {
 		if (StringUtils.isNotBlank(this.name)) {

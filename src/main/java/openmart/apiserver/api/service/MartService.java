@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.sound.midi.Soundbank;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLDecoder;
@@ -42,6 +43,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -200,7 +203,7 @@ public class MartService {
 					.longitude(userLongitude)
 					.latitude(userLatitude)
 					.build();
-			
+
 			result.add(MartHolidayInfosTuple.builder()
 					.name(s.getName())
 					.telNo(s.getTelNo())
@@ -210,6 +213,7 @@ public class MartService {
 					.holidaysInfo(holidaysInfo)
 					.martLocations(martLocations)
 					.userLocations(userLocations)
+					.isOpen(this.getMartOpen(holidaysInfo))
 					.build());
 		});
 		
@@ -454,6 +458,40 @@ public class MartService {
 		
 		return resultCode;
 	}
+
+	/**
+	 * 휴일날짜 정보를 기반으로 현재일 기준 마트 오픈여부 조회
+	 * @param holidayInfo
+	 * @return
+	 */
+	private Boolean getMartOpen(String holidayInfo) {
+		Boolean isOpen = Boolean.TRUE;
+
+		if (StringUtils.isBlank(holidayInfo)) {
+			return isOpen;
+		}
+
+		DateTimeFormatter mMdd = DateTimeFormatter.ofPattern("MMdd");
+		String currentMonthDay = mMdd.format(LocalDateTime.now());
+
+		holidayInfo = holidayInfo.replaceAll("[^0-9\\s]", "");
+		String[] split = holidayInfo.split("\\s");
+		if (split.length > 0) {
+			List<String> list = Arrays.asList(split)
+					.stream()
+					.filter(StringUtils::isNotBlank)
+					.collect(Collectors.toList());
+
+			isOpen = !Optional.ofNullable(list)
+					.filter(CollectionUtils::isNotEmpty)
+					.get()
+					.stream()
+					.filter(s -> StringUtils.equals(s, currentMonthDay))
+					.findAny()
+					.isPresent();
+		}
+		return isOpen;
+	}
 	
 	/**
 	 * 이마트 휴일정보 생성을 위한 조회
@@ -465,8 +503,7 @@ public class MartService {
 		
 		int year;
 		int month;
-		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-		
+
 		if (StringUtils.isBlank(YYYYMMDD)) {
 			LocalDateTime currentDateTime = LocalDateTime.now();
 			year = currentDateTime.getYear();
@@ -651,5 +688,30 @@ public class MartService {
 	 */
 	private Map<String, MartHolidayDetailTuple> getCostcoMartHolidayInfo() {
 		return null;
+	}
+
+	public static void main(String[] args) {
+		DateTimeFormatter mMdd = DateTimeFormatter.ofPattern("MMdd");
+		String currentMonthDay = mMdd.format(LocalDateTime.now());
+
+		String holiday = "매월 둘째주, 넷째주 일요일 (04월12일, 04월26일, 03월26일)";
+		holiday = holiday.replaceAll("[^0-9\\s]", "");
+		String[] split = holiday.split("\\s");
+		if (split.length > 0) {
+			List<String> list = Arrays.asList(split)
+					.stream()
+					.filter(StringUtils::isNotBlank)
+					.collect(Collectors.toList());
+
+			boolean isOpen = !Optional.ofNullable(list)
+					.filter(CollectionUtils::isNotEmpty)
+					.get()
+					.stream()
+					.filter(s -> StringUtils.equals(s, currentMonthDay))
+					.findAny()
+					.isPresent();
+
+			System.out.println(isOpen);
+		}
 	}
 }
