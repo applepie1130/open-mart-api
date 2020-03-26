@@ -22,6 +22,7 @@ import openmart.apiserver.api.model.tuple.naver.NaverSearchTuple;
 import openmart.apiserver.api.model.type.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.math.Primes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -76,31 +77,6 @@ public class MartService {
 		if (StringUtils.isBlank(longitude) || StringUtils.isBlank(latitude)) {
 			// TODO:에러처리
 		}
-		
-		/**
-		 * 위치기반 마트정보 조회 (Naver Place Search API)
-		 */
-//		List<NaverSearchTuple> searchResult = new ArrayList<>(); 
-//		if (StringUtils.isNotBlank(martName)) { /** 마트 이름이 있는경우 **/
-//			try {
-//				martName = URLDecoder.decode(martName, "UTF-8");
-//			} catch (Exception e) {
-//				if (log.isErrorEnabled()) {
-//					log.error(e.getMessage(), e);
-//				}
-//			}
-//			
-//			// 위치기반 네이버API호출
-//			searchResult = this.callNaverApi(latitude, longitude, martName);
-//			
-//		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/ 
-//			// 위치기반 네이버API호출
-//			searchResult.addAll(this.callNaverApi(latitude,longitude, EmartConstants.name));
-//			searchResult.addAll(this.callNaverApi(latitude,longitude, LotteMartConstants.name));
-//			searchResult.addAll(this.callNaverApi(latitude,longitude, HomeplusConstants.name));
-//			searchResult.addAll(this.callNaverApi(latitude,longitude, CostcoConstants.name));
-//		}
-//		
 		/**
 		 * 위치기반 마트정보 조회 (kakao keyword search API)
 		 */
@@ -114,11 +90,11 @@ public class MartService {
 				}
 			}
 			
-			// 위치기반 카카오API호출
+			// 카카오API호출
 			searchResult = this.callKakaoApi(latitude, longitude, martName);
 			
-		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/ 
-			// 위치기반 네이버API호출
+		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/
+			// 카카오API호출
 			searchResult.addAll(this.callKakaoApi(latitude,longitude, EmartConstants.name));
 			searchResult.addAll(this.callKakaoApi(latitude,longitude, LotteMartConstants.name));
 			searchResult.addAll(this.callKakaoApi(latitude,longitude, HomeplusConstants.name));
@@ -243,7 +219,7 @@ public class MartService {
 								 .sorted(Comparator.comparing(MartHolidayInfosTuple::getDistance))
 								 .collect(Collectors.toList());
 		}
-		
+
 		if (log.isDebugEnabled()) {
 			log.debug("### sortedResult ###");
 			log.debug("{}", sortedResult);
@@ -260,8 +236,8 @@ public class MartService {
 	  * @return
 	  */
 	private List<KakaoSearchTuple> callKakaoApi(String latitude, String longitude, String martName) {
-
 		List<KakaoSearchTuple> result = new ArrayList<>();
+		List<KakaoSearchTuple> finalResult = new ArrayList<>();
 		
 		//TODO : 확인용변수
 		Map<String, Object> before = new HashMap<String, Object>();
@@ -273,7 +249,7 @@ public class MartService {
 															.queryParam("query", martName)
 															.queryParam("x", longitude) // 경도
 															.queryParam("y", latitude) // 위도
-															.queryParam("radius", 20000) // 범위(m단위) 20km
+															//.queryParam("radius", 20000) // 범위(m단위) 20km
 															.build(false);
 			
 			String uri = mainBuilder.toUriString();
@@ -320,7 +296,19 @@ public class MartService {
 					});
 				}
 			}
-			
+
+			// 카카오 장소검색 API결과는 최대 15개만 만들어준다
+			if ( Optional.ofNullable(result)
+					.filter(CollectionUtils::isNotEmpty)
+					.filter(t -> t.size() >= 15)
+					.isPresent() ) {
+				finalResult = result.stream()
+						.skip(0)
+						.limit(15)
+						.collect(Collectors.toList());
+			} else {
+				finalResult = result;
+			}
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -332,7 +320,7 @@ public class MartService {
 			log.debug("{}", after);
 		}
 		
-		return result;
+		return finalResult;
 	}
 
 	
