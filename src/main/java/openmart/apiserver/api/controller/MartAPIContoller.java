@@ -6,15 +6,17 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
+import openmart.apiserver.api.model.tuple.MartHolidayInfosResponseTuple;
 import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
 import openmart.apiserver.api.model.tuple.MartHolidayResponseTuple;
 import openmart.apiserver.api.service.MartService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,10 +54,10 @@ public class MartAPIContoller {
 		
 		MartHolidayResponseTuple result = new MartHolidayResponseTuple();
 		List<MartHolidayInfosTuple> searchMartList = martService.findMartHolidayInfos(martSearchCriteria);
+		List<MartHolidayInfosResponseTuple> resultList = new ArrayList<>();
 
 		StringBuffer sbf = new StringBuffer();
-		String message = "";
-		
+
 		if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(searchMartList)) {
 			if (searchMartList.size() > 1) {
 				// message default
@@ -88,25 +90,30 @@ public class MartAPIContoller {
 				}
 
 			} else {
+				String searchName = martSearchCriteria.getMartName();
 				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 				String name = searchMartList.get(0).getName();
+				Boolean isOpen = searchMartList.get(0).getIsOpen();
 
 				sbf.setLength(0);
-				sbf.append(martSearchCriteria.getMartName());
+				sbf.append(searchName);
 				sbf.append("으로 검색된 결과입니다. ");
 				sbf.append(name);
 				sbf.append("의 쉬는날은 ");
 				sbf.append(holidaysInfo);
-				sbf.append("이네요.");
+				sbf.append("이며,");
+				if (BooleanUtils.isTrue(isOpen)) {
+					sbf.append(" 오늘은 정상 영업일 입니다.");
+				} else {
+					sbf.append(" 오늘은 휴무일 입니다.");
+				}
 
 				// handsFree
-				String searchName = martSearchCriteria.getMartName();
 				if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
 					String distance = searchMartList.get(0).getDisplayDistance();
-					Boolean isOpen = searchMartList.get(0).getIsOpen();
 
 					sbf.setLength(0);
-					sbf.append(martSearchCriteria.getMartName());
+					sbf.append(searchName);
 					sbf.append("으로 검색된 결과입니다. ");
 					sbf.append(name);
 					sbf.append("의 쉬는날은 ");
@@ -127,7 +134,6 @@ public class MartAPIContoller {
 			sbf.append("근처 마트로 검색된 결과입니다.");
 
 			// handsFree
-			String searchName = martSearchCriteria.getMartName();
 			if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
 				String holidaysInfo = searchMartList.get(0).getHolidaysInfo();
 				String name = searchMartList.get(0).getName();
@@ -220,8 +226,15 @@ public class MartAPIContoller {
 			sbf.setLength(0);
 			sbf.append("검색된 마트정보가 없네요.");
 		}
-		
-		result.setSearchMartList(searchMartList);
+
+		// Convert
+		if (CollectionUtils.isNotEmpty(searchMartList)) {
+			searchMartList.forEach(t-> {
+				resultList.add(t.of());
+			});
+		}
+
+		result.setSearchMartList(resultList);
 		result.setMessage(sbf.toString());
 		
 		return result; 

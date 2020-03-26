@@ -3,6 +3,7 @@ package openmart.apiserver.api.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import openmart.apiserver.api.comonent.FileCommonUtils;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
@@ -47,7 +48,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Log4j2
 @Service
 @RefreshScope
 public class MartService {

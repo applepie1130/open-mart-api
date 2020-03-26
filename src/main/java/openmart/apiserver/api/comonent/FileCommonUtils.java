@@ -1,5 +1,11 @@
 package openmart.apiserver.api.comonent;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
+import openmart.apiserver.api.model.tuple.admin.MartHolidayDetailTuple;
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,15 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
-import openmart.apiserver.api.model.tuple.admin.MartHolidayDetailTuple;
-
-@Slf4j
+@Log4j2
 @Component
 public class FileCommonUtils {
 	
