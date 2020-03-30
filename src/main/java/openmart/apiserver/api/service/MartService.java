@@ -3,6 +3,7 @@ package openmart.apiserver.api.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.jndi.toolkit.url.Uri;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -25,6 +26,7 @@ import openmart.apiserver.api.model.tuple.naver.NaverSearchTuple;
 import openmart.apiserver.api.model.type.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.math.Primes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -35,15 +37,20 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriBuilderFactory;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.ReactorNetty;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -95,6 +102,7 @@ public class MartService {
 		if (StringUtils.isBlank(longitude) || StringUtils.isBlank(latitude)) {
 			// TODO:에러처리
 		}
+
 		/**
 		 * 위치기반 마트정보 조회 (kakao keyword search API)
 		 */
@@ -259,50 +267,37 @@ public class MartService {
 		List<KakaoSearchTuple> finalResult = new ArrayList<>();
 		
 		try {
-			UriComponents uriComponents = null;
+			URI uri;
 			if (radius != null && radius > 0) {
-				uriComponents = UriComponentsBuilder.fromHttpUrl(KakaoConstants.apiUrl)
+				uri = UriComponentsBuilder.newInstance()
+						.fromHttpUrl(KakaoConstants.apiUrl)
 						.queryParam("query", martName)
 						.queryParam("x", longitude) // 경도
 						.queryParam("y", latitude) // 위도
 						.queryParam("radius", radius) // 범위(m단위) 20km
-						.build(false);
+						.build()
+						.encode()
+						.toUri();
 			} else {
-				uriComponents = UriComponentsBuilder.fromHttpUrl(KakaoConstants.apiUrl)
+				uri = UriComponentsBuilder.newInstance()
+						.fromHttpUrl(KakaoConstants.apiUrl)
 						.queryParam("query", martName)
 						.queryParam("x", longitude) // 경도
 						.queryParam("y", latitude) // 위도
-						.build(false);
+						.build()
+						.encode()
+						.toUri();
 			}
-//			String url = uriComponents.toUriString();
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.add("Authorization", KakaoConstants.KEY);
 
-			/* RestTemplate */
-//			final HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
-//			RestTemplate restTemplate = new RestTemplate();
-//			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
-//			String body = response.getBody();
-//
-//			if ( StringUtils.isBlank(body) ) {
-//				return null;
-//			}
-//
-//			KakaoSearchResponseTuple kakaoSearchResponseTuple = OBJECT_MAPPER.readValue(body, KakaoSearchResponseTuple.class);
-			/* RestTemplate */
-
-
-			/* Webcleint */
 			final TcpClient tcpClient = TcpClient
 					.create()
-					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
 					.doOnConnected(connection -> {
-						connection.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS));
-						connection.addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS));
+						connection.addHandlerLast(new ReadTimeoutHandler(10000, TimeUnit.MILLISECONDS));
+						connection.addHandlerLast(new WriteTimeoutHandler(10000, TimeUnit.MILLISECONDS));
 					});
 			WebClient kakaoWebClient = WebClient.builder()
 					.clientConnector(new ReactorClientHttpConnector(HttpClient.from(tcpClient)))
-					.defaultHeader("Authorization", KakaoConstants.KEY)
 					.filter((request, next) -> {
 						log.info(">> {} {}", request.method(), request.url());
 						return next.exchange(request)
@@ -311,15 +306,16 @@ public class MartService {
 								});
 					})
 					.build();
-
-			Flux<KakaoSearchResponseTuple> kakaoResponseFlux = kakaoWebClient
+			Mono<KakaoSearchResponseTuple> response = kakaoWebClient
 					.get()
-					.uri(uriComponents.toUri())
+					.uri(uriBuilder -> uri)
+					.header("Authorization", KakaoConstants.KEY)
 					.retrieve()
-					.bodyToFlux(KakaoSearchResponseTuple.class);
+					.bodyToMono(KakaoSearchResponseTuple.class);
+			KakaoSearchResponseTuple kakaoSearchResponseTuple = response.block();
 
-			kakaoResponseFlux.subscribe(k -> {
-				List<KakaoPlaceResponseTuple> places = k.getDocuments();
+			if (kakaoSearchResponseTuple != null) {
+				List<KakaoPlaceResponseTuple> places = kakaoSearchResponseTuple.getDocuments();
 
 				if (CollectionUtils.isNotEmpty(places)) {
 					places.forEach(s -> {
@@ -328,7 +324,7 @@ public class MartService {
 						String telNo = StringUtils.replaceChars(s.getPhone(), "-", "");
 						String distance = s.getDistance();
 
-						if ( isApplicableName(name) ) {
+						if ( this.isApplicableName(name) ) {
 							result.add(KakaoSearchTuple.builder()
 									.name(name)
 									.address(address)
@@ -341,32 +337,7 @@ public class MartService {
 						};
 					});
 				}
-			});
-//
-//			if (kakaoSearchResponseTuple != null) {
-//				List<KakaoPlaceResponseTuple> places = kakaoSearchResponseTuple.getDocuments();
-//
-//				if (CollectionUtils.isNotEmpty(places)) {
-//					places.forEach(s -> {
-//						String name = s.getPlace_name();
-//						String address = s.getAddress_name();
-//						String telNo = StringUtils.replaceChars(s.getPhone(), "-", "");
-//						String distance = s.getDistance();
-//
-//						if ( this.isApplicableName(name) ) {
-//							result.add(KakaoSearchTuple.builder()
-//									.name(name)
-//									.address(address)
-//									.telNoKey(telNo)
-//									.telNo(s.getPhone())
-//									.distance(new BigDecimal(distance))
-//									.latitude(s.getY())
-//									.longitude(s.getX())
-//									.build());
-//						};
-//					});
-//				}
-//			}
+			}
 
 			// 카카오 장소검색 API결과는 최대 15개만 만들어준다
 			if ( Optional.ofNullable(result)
