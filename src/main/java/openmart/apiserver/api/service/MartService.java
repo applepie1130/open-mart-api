@@ -262,7 +262,7 @@ public class MartService {
 		try {
 			URI uri;
 			if (radius != null && radius > 0) {
-				uri = UriComponentsBuilder.newInstance()
+				uri = UriComponentsBuilder
 						.fromHttpUrl(KakaoConstants.apiUrl)
 						.queryParam("query", martName)
 						.queryParam("x", longitude) // 경도
@@ -272,7 +272,7 @@ public class MartService {
 						.encode()
 						.toUri();
 			} else {
-				uri = UriComponentsBuilder.newInstance()
+				uri = UriComponentsBuilder
 						.fromHttpUrl(KakaoConstants.apiUrl)
 						.queryParam("query", martName)
 						.queryParam("x", longitude) // 경도
@@ -442,9 +442,7 @@ public class MartService {
 	 */
 	private Boolean isApplicableName(String martName) {
 		boolean isExcludeAble = ExcludedMartNameConstants.excludedMartNames.stream()
-										.filter(s -> StringUtils.contains(martName, s))
-										.findFirst()
-										.isPresent();
+										.anyMatch(s -> StringUtils.contains(martName, s));
 		boolean isIncludeAble = StringUtils.startsWithAny(martName, new String[] {EmartConstants.name, LotteMartConstants.name, HomeplusConstants.name, CostcoConstants.name});
 		
 		return (isExcludeAble == Boolean.FALSE && isIncludeAble == Boolean.TRUE); 
@@ -505,18 +503,15 @@ public class MartService {
 		holidayInfo = holidayInfo.replaceAll("[^0-9\\s]", "");
 		String[] split = holidayInfo.split("\\s");
 		if (split.length > 0) {
-			List<String> list = Arrays.asList(split)
-					.stream()
+			List<String> list = Arrays.stream(split)
 					.filter(StringUtils::isNotBlank)
 					.collect(Collectors.toList());
 
-			isOpen = !Optional.ofNullable(list)
+			isOpen = Optional.ofNullable(list)
 					.filter(CollectionUtils::isNotEmpty)
 					.get()
 					.stream()
-					.filter(s -> StringUtils.equals(s, currentMonthDay))
-					.findAny()
-					.isPresent();
+					.noneMatch(s -> StringUtils.equals(s, currentMonthDay));
 		}
 		return isOpen;
 	}
@@ -723,28 +718,28 @@ public class MartService {
 	 *
 	 * @param args the input arguments
 	 */
-	public static void main(String[] args) {
-		DateTimeFormatter mMdd = DateTimeFormatter.ofPattern("MMdd");
-		String currentMonthDay = mMdd.format(LocalDateTime.now());
-
-		String holiday = "매월 둘째주, 넷째주 일요일 (04월12일, 04월26일, 03월26일)";
-		holiday = holiday.replaceAll("[^0-9\\s]", "");
-		String[] split = holiday.split("\\s");
-		if (split.length > 0) {
-			List<String> list = Arrays.asList(split)
-					.stream()
-					.filter(StringUtils::isNotBlank)
-					.collect(Collectors.toList());
-
-			boolean isOpen = !Optional.ofNullable(list)
-					.filter(CollectionUtils::isNotEmpty)
-					.get()
-					.stream()
-					.filter(s -> StringUtils.equals(s, currentMonthDay))
-					.findAny()
-					.isPresent();
-
-			System.out.println(isOpen);
-		}
+//	public static void main(String[] args) {
+//		DateTimeFormatter mMdd = DateTimeFormatter.ofPattern("MMdd");
+//		String currentMonthDay = mMdd.format(LocalDateTime.now());
+//
+//		String holiday = "매월 둘째주, 넷째주 일요일 (04월12일, 04월26일, 03월26일)";
+//		holiday = holiday.replaceAll("[^0-9\\s]", "");
+//		String[] split = holiday.split("\\s");
+//		if (split.length > 0) {
+//			List<String> list = Arrays.asList(split)
+//					.stream()
+//					.filter(StringUtils::isNotBlank)
+//					.collect(Collectors.toList());
+//
+//			boolean isOpen = !Optional.ofNullable(list)
+//					.filter(CollectionUtils::isNotEmpty)
+//					.get()
+//					.stream()
+//					.filter(s -> StringUtils.equals(s, currentMonthDay))
+//					.findAny()
+//					.isPresent();
+//
+//			System.out.println(isOpen);
+//		}
 	}
 }
