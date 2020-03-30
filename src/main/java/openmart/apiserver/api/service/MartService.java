@@ -3,8 +3,10 @@ package openmart.apiserver.api.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.channel.ChannelOption;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
 import openmart.apiserver.api.comonent.FileCommonUtils;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
 import openmart.apiserver.api.model.tuple.LocationsTuple;
@@ -23,19 +25,23 @@ import openmart.apiserver.api.model.tuple.naver.NaverSearchTuple;
 import openmart.apiserver.api.model.type.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.math.Primes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.*;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.tcp.TcpClient;
 
-import javax.sound.midi.Soundbank;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLDecoder;
@@ -44,10 +50,12 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * The type Mart service.
+ */
 @Log4j2
 @Service
 @RefreshScope
@@ -61,11 +69,17 @@ public class MartService {
 	
 	@Value("${FIXED_HOLIDAYS_INFO}")
 	private String FIXED_HOLIDAYS_INFO;
-	
+
+	@Value("${API_RADIUS}")
+	private Integer API_RADIUS;
+
 	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
 	 * 카카오 API 위치정보 판단<p>
 	 * 사전생성된 마트별 휴일정보 전화번호를 통한 조회
+	 *
+	 * @param martSearchCriteria the mart search criteria
+	 * @return the list
 	 */
 	public List<MartHolidayInfosTuple> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
 		
@@ -95,14 +109,14 @@ public class MartService {
 			}
 			
 			// 카카오API호출
-			searchResult = this.callKakaoApi(latitude, longitude, martName);
+			searchResult = this.callKakaoApi(latitude, longitude, martName, null);
 			
 		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/
 			// 카카오API호출
-			searchResult.addAll(this.callKakaoApi(latitude,longitude, EmartConstants.name));
-			searchResult.addAll(this.callKakaoApi(latitude,longitude, LotteMartConstants.name));
-			searchResult.addAll(this.callKakaoApi(latitude,longitude, HomeplusConstants.name));
-			searchResult.addAll(this.callKakaoApi(latitude,longitude, CostcoConstants.name));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, EmartConstants.name, API_RADIUS));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, LotteMartConstants.name, API_RADIUS));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, HomeplusConstants.name, API_RADIUS));
+			searchResult.addAll(this.callKakaoApi(latitude,longitude, CostcoConstants.name, API_RADIUS));
 		}
 		
 		/**
@@ -240,54 +254,81 @@ public class MartService {
 	  * @param martName
 	  * @return
 	  */
-	private List<KakaoSearchTuple> callKakaoApi(String latitude, String longitude, String martName) {
+	private List<KakaoSearchTuple> callKakaoApi(String latitude, String longitude, String martName, Integer radius) {
 		List<KakaoSearchTuple> result = new ArrayList<>();
 		List<KakaoSearchTuple> finalResult = new ArrayList<>();
 		
-		//TODO : 확인용변수
-		Map<String, Object> before = new HashMap<String, Object>();
-		Map<String, Object> after = new HashMap<String, Object>();
-		
 		try {
-			RestTemplate restTemplate = new RestTemplate();
-			UriComponents mainBuilder = UriComponentsBuilder.fromHttpUrl(KakaoConstants.apiUrl)
-															.queryParam("query", martName)
-															.queryParam("x", longitude) // 경도
-															.queryParam("y", latitude) // 위도
-															//.queryParam("radius", 20000) // 범위(m단위) 20km
-															.build(false);
-			
-			String uri = mainBuilder.toUriString();
-			
-			HttpHeaders headers = new HttpHeaders();
-			headers.add("Authorization", KakaoConstants.KEY);
-			
-			final HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, httpEntity, String.class);        
-			String body = response.getBody();
-			
-			if ( StringUtils.isBlank(body) ) {
-				return null;
+			UriComponents uriComponents = null;
+			if (radius != null && radius > 0) {
+				uriComponents = UriComponentsBuilder.fromHttpUrl(KakaoConstants.apiUrl)
+						.queryParam("query", martName)
+						.queryParam("x", longitude) // 경도
+						.queryParam("y", latitude) // 위도
+						.queryParam("radius", radius) // 범위(m단위) 20km
+						.build(false);
+			} else {
+				uriComponents = UriComponentsBuilder.fromHttpUrl(KakaoConstants.apiUrl)
+						.queryParam("query", martName)
+						.queryParam("x", longitude) // 경도
+						.queryParam("y", latitude) // 위도
+						.build(false);
 			}
-			
-			KakaoSearchResponseTuple kakaoSearchResponseTuple = OBJECT_MAPPER.readValue(body, KakaoSearchResponseTuple.class);
-			
-			if (kakaoSearchResponseTuple != null) {
-				List<KakaoPlaceResponseTuple> places = kakaoSearchResponseTuple.getDocuments();
-				
+//			String url = uriComponents.toUriString();
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.add("Authorization", KakaoConstants.KEY);
+
+			/* RestTemplate */
+//			final HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
+//			RestTemplate restTemplate = new RestTemplate();
+//			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+//			String body = response.getBody();
+//
+//			if ( StringUtils.isBlank(body) ) {
+//				return null;
+//			}
+//
+//			KakaoSearchResponseTuple kakaoSearchResponseTuple = OBJECT_MAPPER.readValue(body, KakaoSearchResponseTuple.class);
+			/* RestTemplate */
+
+
+			/* Webcleint */
+			final TcpClient tcpClient = TcpClient
+					.create()
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+					.doOnConnected(connection -> {
+						connection.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS));
+						connection.addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS));
+					});
+			WebClient kakaoWebClient = WebClient.builder()
+					.clientConnector(new ReactorClientHttpConnector(HttpClient.from(tcpClient)))
+					.defaultHeader("Authorization", KakaoConstants.KEY)
+					.filter((request, next) -> {
+						log.info(">> {} {}", request.method(), request.url());
+						return next.exchange(request)
+								.doOnNext(r -> {
+									log.info("<< {} {}", r.statusCode().value(), r.statusCode().getReasonPhrase());
+								});
+					})
+					.build();
+
+			Flux<KakaoSearchResponseTuple> kakaoResponseFlux = kakaoWebClient
+					.get()
+					.uri(uriComponents.toUri())
+					.retrieve()
+					.bodyToFlux(KakaoSearchResponseTuple.class);
+
+			kakaoResponseFlux.subscribe(k -> {
+				List<KakaoPlaceResponseTuple> places = k.getDocuments();
+
 				if (CollectionUtils.isNotEmpty(places)) {
 					places.forEach(s -> {
 						String name = s.getPlace_name();
 						String address = s.getAddress_name();
 						String telNo = StringUtils.replaceChars(s.getPhone(), "-", "");
 						String distance = s.getDistance();
-						
-						before.put(telNo, Arrays.asList(name, address));
-						
-						if ( this.isApplicableName(name) ) {
-							
-							after.put(telNo, Arrays.asList(name, address));
-							
+
+						if ( isApplicableName(name) ) {
 							result.add(KakaoSearchTuple.builder()
 									.name(name)
 									.address(address)
@@ -300,7 +341,32 @@ public class MartService {
 						};
 					});
 				}
-			}
+			});
+//
+//			if (kakaoSearchResponseTuple != null) {
+//				List<KakaoPlaceResponseTuple> places = kakaoSearchResponseTuple.getDocuments();
+//
+//				if (CollectionUtils.isNotEmpty(places)) {
+//					places.forEach(s -> {
+//						String name = s.getPlace_name();
+//						String address = s.getAddress_name();
+//						String telNo = StringUtils.replaceChars(s.getPhone(), "-", "");
+//						String distance = s.getDistance();
+//
+//						if ( this.isApplicableName(name) ) {
+//							result.add(KakaoSearchTuple.builder()
+//									.name(name)
+//									.address(address)
+//									.telNoKey(telNo)
+//									.telNo(s.getPhone())
+//									.distance(new BigDecimal(distance))
+//									.latitude(s.getY())
+//									.longitude(s.getX())
+//									.build());
+//						};
+//					});
+//				}
+//			}
 
 			// 카카오 장소검색 API결과는 최대 15개만 만들어준다
 			if ( Optional.ofNullable(result)
@@ -317,14 +383,7 @@ public class MartService {
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
-		
-		if (log.isDebugEnabled()) {
-			log.debug("### 정제 전 응답 ###");
-			log.debug("{}", before);
-			log.debug("### 정제 후 응답 ###");
-			log.debug("{}", after);
-		}
-		
+
 		return finalResult;
 	}
 
@@ -336,6 +395,7 @@ public class MartService {
 	 * @param martName
 	 * @return
 	 */
+	@Deprecated
 	private List<NaverSearchTuple> callNaverApi(String latitude, String longitude, String martName) {
 		
 		List<NaverSearchTuple> result = new ArrayList<>();
@@ -425,9 +485,12 @@ public class MartService {
 		
 		return (isExcludeAble == Boolean.FALSE && isIncludeAble == Boolean.TRUE); 
 	}
-	
+
 	/**
-	 * 마트별 휴일정보데이터 생성  
+	 * 마트별 휴일정보데이터 생성
+	 *
+	 * @param YYYYMMDD the yyyymmdd
+	 * @return the string
 	 */
 	public String saveMartHolidayInfos(String YYYYMMDD) {
 		
@@ -691,6 +754,11 @@ public class MartService {
 		return null;
 	}
 
+	/**
+	 * The entry point of application.
+	 *
+	 * @param args the input arguments
+	 */
 	public static void main(String[] args) {
 		DateTimeFormatter mMdd = DateTimeFormatter.ofPattern("MMdd");
 		String currentMonthDay = mMdd.format(LocalDateTime.now());
