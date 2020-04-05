@@ -1,5 +1,6 @@
 package openmart.apiserver.api.service;
 
+import java.sql.SQLOutput;
 import java.util.Scanner;
 
 public class AlgorithmTest {
@@ -236,4 +237,24 @@ public class AlgorithmTest {
 //        System.out.println( r2 );
 //        System.out.println( s.concat(r3) );
 //	}
+
+	/**
+	 * 캥거루텟트
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
+		int x1 = 0, v1 = 2 ,
+				x2= 5, v2 =3 ;
+		int sx = x1 - x2;
+		int sv = v2 - v1;
+
+		if ( sx != 0 && sv == 0 ) {
+			System.out.println("NO");
+		} else if (sx % sv == 0 && sx / sv > 0) {
+			System.out.println("YES");
+		} else {
+			System.out.println("NO");
+		}
+	}
 }
