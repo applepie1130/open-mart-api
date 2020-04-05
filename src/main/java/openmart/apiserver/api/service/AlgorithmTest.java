@@ -1,14 +1,6 @@
 package openmart.apiserver.api.service;
 
-import org.apache.commons.lang3.StringUtils;
-
-import javax.sound.midi.Soundbank;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.Scanner;
 
 public class AlgorithmTest {
     /**
@@ -127,30 +119,121 @@ public class AlgorithmTest {
      * 40점 초과에 대해 뒷 숫자가 5보다 작으면 5로 올려주고, 5보다 크면 반올림해주기
      * @param args
      */
-    public static void main(String[] args) {
-        List<Integer> grades = Arrays.asList(73, 67, 38, 33);
-        List<Integer> result = new ArrayList<>();
-
-        grades.stream().forEach(t -> {
-            if ( t.compareTo(40) < 0 ) {
-                result.add(t);
-            } else {
-                Integer integer = Integer.valueOf(t % 10);
-                // 5보다 작은경우
-                if (integer.compareTo(5) < 0 ) {
-                    String s = t.toString();
-                    String substring = StringUtils.substring(s, 0, s.length()-1);
-                    result.add(Integer.parseInt(substring.concat("5")));
-                } else {
-                    BigDecimal bigDecimal = new BigDecimal(t);
-                    result.add(bigDecimal.setScale(-1, RoundingMode.CEILING).intValue());
-                }
-            }
-        });
-
-        System.out.println(result);
-
-    }
-
-
+//    public static void main(String[] args) {
+//        List<Integer> grades = Arrays.asList(73, 67, 38, 33);
+//        List<Integer> result = new ArrayList<>();
+//
+//        grades.stream().forEach(t -> {
+//        	Integer integer = Integer.valueOf(t % 10);
+//
+//        	if ( integer > 5 ) {
+//        		Integer value = 10-integer;
+//        		if (value < 3) {
+//        			//올림
+//        			BigDecimal bigDecimal = new BigDecimal(t);
+//
+//        			int calcValue = bigDecimal.setScale(-1, RoundingMode.CEILING).intValue();
+//
+//        			if ( calcValue >= 40 ) {
+//        				result.add(calcValue);
+//        			} else {
+//        				result.add(t);
+//        			}
+//
+//        		} else {
+//        			result.add(t);
+//        		}
+//
+//        	} else {
+//        		Integer value = 5-integer;
+//        		if (value < 3) {
+//        			//5로 올림
+//        			String s = t.toString();
+//        			String substring = StringUtils.substring(s, 0, s.length()-1);
+//        			int calcValue = Integer.parseInt(substring.concat("5"));
+//
+//        			if ( calcValue >= 40 ) {
+//        				result.add(calcValue);
+//        			} else {
+//        				result.add(t);
+//        			}
+//
+//        		} else {
+//        			result.add(t);
+//        		}
+//        	}
+//        });
+//        result.stream().forEach(System.out::println);
+//    }
+	
+	/**
+	 * 애플, 오랜지
+	 * @param args
+	 */
+//	public static void main(String[] args) {
+//		
+//		int s = 7;
+//		int t = 11;
+//		int a = 5;
+//		int b = 15;
+//		int[] apples = {-2, 2, 1};
+//		int[] oranges = {5, -6};
+//		
+//		List<BigDecimal> aa = new ArrayList<>();
+//		List<BigDecimal> bb = new ArrayList<>();
+//		
+//		BigDecimal s1 = new BigDecimal(s);
+//		BigDecimal t1 = new BigDecimal(t);
+//		
+//		// range s~t
+//		IntStream stream1 = Arrays.stream(apples);
+//		stream1.forEach(x -> {
+//			
+//			BigDecimal b1 = new BigDecimal(a);
+//			BigDecimal b2 = new BigDecimal(x);
+//			BigDecimal add = b1.add(b2);
+//			
+//			if (add.compareTo(s1) >= 0 && add.compareTo(t1) <= 0) {
+//				aa.add(b2);
+//			}
+//		});
+//		IntStream stream2 = Arrays.stream(oranges);
+//		stream2.forEach(x -> {
+//			BigDecimal b1 = new BigDecimal(b);
+//			BigDecimal b2 = new BigDecimal(x);
+//			BigDecimal add = b1.add(b2);
+//			
+//			if (add.compareTo(s1) >= 0 && add.compareTo(t1) <= 0) {
+//				bb.add(b2);
+//			}
+//		});
+//		
+//		System.out.println(aa.size());
+//		System.out.println(bb.size());
+//	}
+	
+	
+	/**
+	 * 문자열 입력
+	 * 
+	 * @param args
+	 */
+//	public static void main(String[] args) {
+//        /* Declare second integer, double, and String variables. */
+//        int i = 4;
+//        double d = 4.0;
+//        String s = "HackerRank ";
+//        
+//        Scanner scan = new Scanner(System.in);
+//        
+//        int r1 = (int)(i + scan.nextInt());
+//        scan.nextLine();
+//        double r2 = d + scan.nextDouble();
+//        scan.nextLine();
+//        String r3 = scan.nextLine();
+//        
+//        System.out.println( r1 );
+//        System.out.println( r2 );
+//        System.out.println( s.concat(r3) );
+//	}
 }
