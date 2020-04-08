@@ -2,6 +2,7 @@ package openmart.apiserver.api.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AlgorithmsTest2 {
 	
@@ -12,14 +13,14 @@ public class AlgorithmsTest2 {
 		Dictionaries and Hashmaps
 	*/
 	/*****************************************************************/
-//	/**
-//	 * TWO String
-//	 * 
-//	 * 2개의 문자열 중 각각 겹치는 캐릭터가 존재할 경우 YES
-//	 * 솔루션 : 중복문자를 제거한 후 비교를 때리면 한 껏 수월해짐
-//	 *  
-//	 * @param args
-//	 */
+	/**
+	 * TWO String
+	 * 
+	 * 2개의 문자열 중 각각 겹치는 캐릭터가 존재할 경우 YES
+	 * 솔루션 : 중복문자를 제거한 후 비교를 때리면 한 껏 수월해짐
+	 *  
+	 * @param args
+	 */
 //	public static void main(String[] args) {
 //		String s1 = "hello";
 //		String s2 = "world";
@@ -242,6 +243,7 @@ public class AlgorithmsTest2 {
 //        int n = arr.length;
 //        Integer min = null;
 //        Integer op = null;
+//        
 //        for (int i=0; i<n; i++) {
 //            for (int j=i+1; j<n; j++) {
 //            	op = Math.abs(arr[i] - arr[j]);
@@ -256,4 +258,68 @@ public class AlgorithmsTest2 {
 //        
 //        System.out.println(min);
 //	}
+
+
+	/*****************************************************************/
+	/*  2020.04.08
+		PracticeInterview > Preparation Kit > Arrays
+	*/
+	/*****************************************************************/
+	/**
+	 * Arrays : Left Rotation
+	 * 왼쪽으로 배열 요소를 이동처리
+	 * @param args
+	 */
+//	public static void main(String[] args) {
+//
+//		int[] a = {1, 2, 3, 4};
+//		int d = 2;
+//		List<Integer> list = IntStream.of(a).boxed().collect(Collectors.toList());
+//
+//		List<Integer> subList = list.subList(d, a.length);
+//		subList.addAll(list.subList(0, d));
+//
+//		System.out.println(subList);
+//		int[] result = subList.stream().mapToInt(i -> i).toArray();
+//
+//
+//	}
+
+	/*****************************************************************/
+	/*  2020.04.08 (Medium)
+		PracticeInterview > Preparation Kit > Search > IceCream Parlor
+	*/
+	/*****************************************************************/
+
+	/**
+	 * Alternating Characters
+	 * 캐릭터 변경
+	 * @param args
+	 */
+//	public static void main(String[] args) {
+////		String s = "AAABBB";
+////		String s = "ABABABAB";
+////		String s = "BABABA";
+//		String s = "AAAA";
+//		List<Character> list = s.chars().mapToObj(i -> (char) i).collect(Collectors.toList());
+//
+//		int size = list.size();
+//		List<Character> result = new ArrayList<>();
+//
+//		for (int i=0, j=1; j<size; j++) {
+//
+//			Character c1 = list.get(i);
+//			Character c2 = list.get(j);
+//
+//			if ( c1 == c2 )  {
+//				result.add(c2);
+//			} else {
+//				i=j;
+//			}
+//		}
+//
+//		System.out.println(result);
+//		System.out.println(result.size());
+//	}
+
 }

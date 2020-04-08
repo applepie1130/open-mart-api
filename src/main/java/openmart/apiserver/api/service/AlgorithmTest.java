@@ -1,9 +1,5 @@
 package openmart.apiserver.api.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class AlgorithmTest {
     /**
      *      #
@@ -539,6 +535,70 @@ public class AlgorithmTest {
 //		}
 //		// 0 이전에 -가 있었는지
 //		System.out.println(result);
+//	}
+
+
+	/**
+	 * 구름 점프 (최대 1,2만큼만 뛸수 있고, 1은 패스해야함. 최단경로)
+	 * @param args
+	 */
+//	public static void main(String[] args) {
+//		int[] c = {0, 0, 1, 0, 0, 1, 0}; // 4
+////		int[] c = {0, 0, 0, 0, 1, 0}; // 3
+////		int[] c = {0,1,0,0,0,1,0}; // 3
+////		int[] c = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0,1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0}; // 28
+//		
+//		int n = c.length-1;
+//		int i = 0;
+//		List<Integer> list = new ArrayList<>();
+//		
+//		while ( i < n ) {
+//			if (c[i] == 1) {
+//				i++;
+//				continue;
+//			}
+//			
+//			if ( i == n-1 ) {
+//				if ( c[i+1] == 0 ) {
+//					list.add(i+1);
+//					i = i+1;
+//				}
+//				break;
+//			}
+//			
+//			if ( c[i+2] == 0 ) {
+//				list.add(i+2);
+//				i = i+2;
+//			} else if ( c[i+1] == 0 ) {
+//				list.add(i+1);
+//				i = i+1;
+//			}
+//		}
+//		
+//		System.out.println(list);
+//		System.out.println(list.size());
+//	}
+
+	/**
+	 * 전체 사이즈에 문자열을 채워넣고 그 중 a가 몇개인지 알아보기 (인터뷰용 몸풀기문제)
+	 * @param args
+	 */
+//	public static void main(String[] args) {
+//		String s = "a";
+////		long n = 10;
+//		long n = 1000000000000L;
+//
+//		long size = s.length();
+//		long aSize = s.chars().filter(c->c=='a').count();
+//		long aCount = ( n/size ) * aSize;
+//
+//		for (int i =0; i<n%size; i++) {
+//			if ( s.charAt(i) == 'a') {
+//				aCount++;
+//			}
+//		}
+//
+//		System.out.println(aCount);
 //	}
 	
 }
