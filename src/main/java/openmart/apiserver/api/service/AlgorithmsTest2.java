@@ -1,8 +1,13 @@
 package openmart.apiserver.api.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import jdk.nashorn.internal.objects.NativeRegExp;
+
+import javax.sound.midi.Soundbank;
+import javax.xml.transform.sax.SAXSource;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class AlgorithmsTest2 {
 	
@@ -285,12 +290,6 @@ public class AlgorithmsTest2 {
 //
 //	}
 
-	/*****************************************************************/
-	/*  2020.04.08 (Medium)
-		PracticeInterview > Preparation Kit > Search > IceCream Parlor
-	*/
-	/*****************************************************************/
-
 	/**
 	 * Alternating Characters
 	 * 캐릭터 변경
@@ -322,4 +321,174 @@ public class AlgorithmsTest2 {
 //		System.out.println(result.size());
 //	}
 
+
+	/*****************************************************************/
+	/*  2020.04.09 실전!!! */
+	/*****************************************************************/
+
+	/**
+	 * 1번문제
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
+//		 길이 : 910 ( 219, ) 691
+//		 564
+//		String s = "()()()()()()()()()()()()()()()()()()(()))))()))))))()))()())))())))))))))))()))())(()()())()()())))))()))))())()))()))))))))))))))()())))()))))()))))))()))())()))())))(()))()))))))))())))())))(())()))))()((()))))))((((()())())())(())))))())())))))))())))))()(()))))()))))())))))()())())()))()))))))))()))))))))))()))))())))))(((()))))()))((())))())))))))())))()()())())))))())))())())))))(())())))))))())))()()))))))))))))(())())())))((()))))))(())))()())))()))))(())))(())))))))))))))(())))(())()))))(()))())())))))))()())(()(())())))))))))))))))))))))))((()())))())))())))((()())))()))())()))))())()())))))))))))(()))))))))))))))()))))))()))))))))))))))))(()(()))(()))()))))))()))()()))))))))))()))())()))))())))()()()))()))))(())))))))))))))()()))))(())))()))))))()))()())()))())()())())))()()(()())))))()())))))))())))())))(())))())))))))()))))))))()((()(())))))))))(())))())))())))))))))()())))()))))))))(";
+//		String s = "(())";
+//		List<Character> list = s.chars().mapToObj(c -> (char) c).collect(Collectors.toList());
+
+//		int count = 0;
+//		int length = s.length();
+//		Iterator<Character> iterator = list.iterator();
+//		while (iterator.hasNext()) {
+//			Character c1 = iterator.next();
+//
+//			Iterator<Character> iterator2 = list.iterator();
+//			while (iterator2.hasNext()) {
+//				Character c2 = iterator2.next();
+//
+//				if (c1 == '(') {
+//					if (c2 ==')') {
+//						iterator.remove();
+//						iterator2.remove();
+//						count+=2;
+//						break;
+//					}
+//				} else {
+//					if (c2 =='(') {
+//						iterator.remove();
+//						iterator2.remove();
+//						count+=2;
+//						break;
+//					}
+//				}
+//			}
+//
+//		}
+//		System.out.println(length-count);
+
+
+		String s = "()))))))))))))))))))))))()()))()))))))))()))))))()))()))))(()))))))))))))()))))))(()))))))))()()))))))))))))()))))(())()))))))(()))))()))))))()))()())))())))))))))))()))())(()()())()()())))))()))))())()))()))))))))))))))()())))()))))()))))))()))())()))())))(()))()))))))))())))())))(())()))))()((()))))))((((()())())())(())))))())())))))))())))))()(()))))()))))())))))()())())()))()))))))))()))))))))))()))))())))))(((()))))()))((())))())))))))())))()()())())))))())))())())))))(())())))))))())))()()))))))))))))(())())())))((()))))))(())))()())))()))))(())))(())))))))))))))(())))(())()))))(()))())())))))))()())(()(())())))))))))))))))))))))))((()())))())))())))((()())))()))())()))))())()())))))))))))(()))))))))))))))()))))))()))))))))))))))))(()(()))(()))()))))))()))()()))))))))))()))())()))))())))()()()))()))))(())))))))))))))()()))))(())))()))))))()))()())()))())()())())))()()(()())))))()())))))))())))())))(())))())))))))()))))))))()((()(())))))))))(())))())))())))))))))()())))()))))))))(";
+		System.out.println(s.length());
+		Map<Character, Long> charMap = s.chars().mapToObj(c -> (char)c).collect(Collectors.groupingBy(t->t, Collectors.counting()));
+		Long iVal = charMap.get('(');
+		Long jVal = charMap.get(')');
+
+		System.out.println(charMap);
+		System.out.println(iVal);
+		System.out.println(jVal);
+
+		int result = (int) Math.abs(iVal - jVal);
+
+		System.out.println(result);
+	}
+//	public static void main(String[] args) {
+//
+//		// ababba
+////		String word = "ababbacaabbbb";
+////		int k = 1;
+//		// zpnulmsphyqjxroujvoyddahutpacfuebouhppvrsavfkandiqeuoedxkqfkutogoesxhfsnvknivrieoojvsbvcuwhpjjthljozuatuoihddpluzxxnklwrkmkhnrehgbnjsmbcenyjcrwyzzgaqsfouwimwjlqgpygkqtsizszroumhkecovugpbhbiezjgduyilhyphsxkcbowigfpusgpcuopbtvhkofupvxklrfqemwjymbxdtauvmlmhzqtwqgryrvua
+////		String word = "bhljuexsyuuvyhztsimgvoxiyycuzeasmzghajvrjnykbdhyreufwirlccjhtfjuqvzidfdyidtxnikriwrvtoqenazltkbjstmrwtgdkwvschwpgfzqsacuuvjfpadbohqnywgsntoqquburdtpfpptrkfcsdcevbmcmhecxncrdirkwbmvqgynabprmdbjwhbcrncwdukokijzenidfqcrezgfxvatqffxezguqyztqargorrzknklmjfikrvatzstlmwjjrypjimkwzybcbinumkoiosqypajdajcphqdndcmvygsjjfreddemldzurfeeelztblokbfprielfojcgilsrxalovpxjchpufxerhhbgnhjjsrupofxjrimgndpnomkyzfqiqjxqxbtvmxvyrzmsgzwcgqquekxqjwfudqzydncuizvkzawcteorormmaqoiacevzqqjrwfhoshrepkcynkwdrkoeqesurqtzcqcdaonfsuwcuaokhimsynoyfwprdmhyesfpcxnmurltmwqwwenzmxjgopkcifomcjonllrdpwmtzubsoinwnlqcszsealyvnhwjnnuxkwyiopsmtvivjbcrkcxsrmopbchayttisbzxktfxwenesgysuwvkfdwkagbdlpfzayxlntwykyyuewfzifjwwjnxjbknzfqezipnkkjkrnqethkpblnqusmhdfhkjkvelytlqnltmbbsurveyegehkofkutdekhemnmyqvhwwurhsuounbjzwhicxibfghjykectxtdyfhyybljnfvowjaizjffzpxnwcqahlzlfikhslacbfghdwvtqfqqxbqbmxksbiiypozbsyybmdzfrhxprmmgmmrpmtcajbsdstjjowhqwrsuzzvttmmksmsxghtsqgesrczefrzcfprtxvegkuzlypsjbhahbilioibyxifzjpzsrjpfelrzktziuojdbmdnknjzorzcawbsalusvdufbnamdirsmuijsmuuugnqovtwqgutqhpvqwlyycygirhusujqqvnpvwqsgstoscmclnbfytsuxzclhsfzfxkxsfjxkvabuttbscomybdepwrqndoppvtikpmqkdsjixsocbzbswooayozoyrzyhbushytgvprajdcstirvvwkaznlhcxdqejuqpjuhwfqeseigscrstbxqvyfpnwxztvhqxgbbslffitlsxdqvaextbexuwwdiejfsmdmgfpounfywkuyypnyucmibazrcbivlwzszsfjhvkvpcbqbuqdllgcvqjibrfazennnmffpyheodzfldmnradktpbjkkpqvyhygxlunqhqtxnadioghyjomokbtavxyfbidmelfqrsfxekbqxuuwehghvbnavvjrgdjgczvfcponryacggjmfzvalipnpmxbjefhujbgymqjaullceylijkaspltedadskhefbkqrqtsgbdtxwkzyaqyqemwcjysfkvzwgqcnuzgendculxttrdsxsxmxqfdgutpnyjolknsiuezcvujxlpotblpmpgjjvukpjitayuahcttxdmomludxesiutmpxnpqnrkolmbsdtdoksakpgfyozgnsgtbfbedwoghhhyndyzpezihblyfvigwhkqfygzwcbmbpiimeogzoqhdwisfanuncucocgaqwkobzfidbbqgmaqqzdvfafmczdhuzkkmcvjgejgayrjarlurbmhvhosojxqdzznqpkropeexnjtsqkaienkgcibbtxashzzdnfdliciyyghecxlebapsexthlfulocnrsmlcqgkaqslqfiapoeuqrzjfswmonxlixmitdpafnndsifnrvdrsddkgdniojhnpmokhhiverylrhdrxyoqhbxnpsiktchnrhlbzahwzmjjvedyrtldihjetjwpycxpoccatlxigqodlsakvgetsaoubsezeyszapiyapwuaeisdzckiuuxtisywjsnhtlzptnojwbckpnabscvivbqdtgmgdsxqpxrebdovsgbksxugusjncvwqhwvaeezmkajhjiebbdpgtfqrnrjequlgeynvtrygkeqpqmjaigoepbfqguqkadvesqhcxmfsgilnlqcopfjekzzgtbymrfxkserpbwbcnpkkwhqfojvtpeuxjyiyitmgvyqfszsqgsmspbqoozqhisbwosdphwrdnxpknoqjiyavzfrvzwtlvqmuccymzivacvmqmbrwnthqqwadbpxhngtvvzvqieetfymhqedcxwhpkonbjnkudvfivhebhsnzsxzzjaddyqpktcvkgfejyixagxbdsicgvwqtlroyvxvgjdtvuukpniubgeenyppzyhsewdpocrchiqhcngcfopcbykcttgfwdfniwhzjnzoofmamkcuqgpmeywjfqfowfqxlyryekxogkjtowfjxdgowypixismveecselbbryhtswxgkfrydldvekuvkvsjcavjvhhclhavrywrckyfhwmzmqfbtbigbyjgrrkehtkmyhhtwnzjjktyvzbaqyuusdfguliqqkxuiqhkedftupgkmocgiroddijslfinxhytanzqqlhptrnybbuuyuthofrlwbzxsftflqwblleaecbzhdpqdmyxqgjvnetpyyzwefgbvsbjgbmrhqczriujldtqpolsmdgehwsmrczmfgbugfiomwfbwpxwvluaorgczsgxkzotrlsdkodqczcpvjhcpporirercxgxfwjekvvonigchggrzjueyskjhzokxmzkldnjcimunboojaqzvcdpmsonsfoowlreikclgqjamjvtmdskdpyotvojllpxoqxfzkgfhvmckjlhapayylkdiiptotsrjvyhmcomxsbyxqxxqpgfgenxeqndjcjlvqxsqioyvqgleazxszwccdkpzwmlzmasoaaryphmijhjuqpgwpunuimyiaylayazpnulmsphyqjxroujvoyddahutpacfuebouhppvrsavfkandiqeuoedxkqfkutogoesxhfsnvknivrieoojvsbvcuwhpjjthljozuatuoihddpluzxxnklwrkmkhnrehgbnjsmbcenyjcrwyzzgaqsfouwimwjlqgpygkqtsizszroumhkecovugpbhbiezjgduyilhyphsxkcbowigfpusgpcuopbtvhkofupvxklrfqemwjymbxdtauvmlmhzqtwqgryrvuaykxryxjbiqicsgyksoojojlqexosacjbjrplryelvmnrqodzemnbavywgwbuhffigvudtnqdtdkdxzxihlsvypqkogiylxvchdbruosugupkmdwkuepzkvmrnsylccpduzgvwndlepfvyhtytkggxrzofupbupqcjzxwdvxufiqwguwulkrlpzlxqbnxtdwuiemmpumhakpuchklyrtiorrqzapnwdhzuvcbzttlxygpnragvawbhkfrpqskskmkpiypqgymlqicwvflfltkkejqotaydqbdflqpnolwdasqvkxbvvfmasnwwhwqufkfnisaxzynjjddrxgvxktyiogjiwnyrulrxthfkbecgwbldqbpbzzudvajozhmlxtkiltqcclgfdmasdietvjglejokfociswlqxtbfhyoxwuronqlgjfjkphapcmcnbtgfgvludaoyhxseakzasslxvatvlejvsladkvjjmetfwpnnlorpemmamqhmpgkzzbxxzqwmbwfycgwemvvpyeoycgfsvwmutczfqwtusngsdktdufrycyfinzrvjflbzbpvreypnqhzzpkmnyzqqwvisnivsuozvdmtgzhzesfmxcyblrsdpqkxyqovfseuebeysdiqflwnjzplnserntnodwzmfvnatoxsjrclzfzhxjqqmnqdzxwdcssgeblgrezgwknapvbsppitfedryvzxqdzxvdiyuajycpbxxkpkhdekgxhyjzgcheedyszlihjfossmjdbouwttystfvpkbhcdyxmzeyqibqledsvjnyffidkkwbourovzndkfxnlpsizxkemavarmqelsnpgjezgfacbxzgxpvimbmambsvwmqbzilvpqjtcmbgerufbtbeqpmfgiwrughddpejuornucejnyfijstrzoneizbrgogturzfljgckyxdngrvawclptfrnvrwrwvurzmvxtkixllivrkcfxlguvlmngyfcdjqflggiunvhvuzkxhvqnwymjztermppcxqrgeobrbpargqlraqrjwkfnzgnudranaxqfmsaantchudfhvmuwfrbhmssgzxdxrfkxrytlbyaeflklvxhzpvafeunvqeiadxxclrotkfcymnkgygghtkuacbaoazpsbxjzmfidjpsaoiozjvulmcuzguyhphrgietadphlirgbmvmonsljumqrlengezdpchpfkwoyteprqyjbjupamjxeovuhueuxeuxfgnltehtouiepnlmrgltedeokmmiwbonglzcuuzzzfyuwbollpptcijkmsmhueevchpiuprshexwdfmwfgxccblwrkapnvplvoknfcrulvfjfnyzmtfjummlhpippsmfqfocmhkdgizkrsacjysnqskvpungzhzdgxwejklehueubwyinmebajhezjrcgoqielfzwhnsdcrctmrochftxuxicbagbnesyhdspbazhfxbdjunghnnogatkkaknajopclxaeyhjcmufbaoubmspuwhsdazfikvszhyunqiavavyyqcqzcgzsvxomrenckzcogkgnjdoyawvshefm";
+////		int k =22;
+//
+//		String word = "apple";
+//		int k = 25;
+//
+//		byte[] bytes = word.getBytes();
+//		int length = bytes.length;
+//		String result = "";
+//		Map<Integer, String> map = new HashMap<>();
+//
+//		int max = 0;
+//		String returnString = "";
+//		Boolean isBeforeAdded = Boolean.FALSE;
+//
+//		for (int i=0, j=1; i<length-1; i++, j++) {
+//			byte b1 = bytes[i];
+//			byte b2 = bytes[j];
+//			int abs = Math.abs(b1 - b2);
+//
+//			if (abs <= k) {
+//				System.out.println(abs);
+//				if (isBeforeAdded == Boolean.FALSE) {
+//					result += (char) b1;
+//				}
+//				result += (char) b2;
+//				isBeforeAdded = Boolean.TRUE;
+//
+//			} else {
+//				isBeforeAdded = Boolean.FALSE;
+//
+//				if (!result.equals("")) {
+//					if (max < result.length()) {
+//						max = result.length();
+//						returnString = result;
+//					}
+//					result = "";
+//				}
+//			}
+//		}
+//		if (returnString.equals("")) {
+//			returnString = result;
+//		}
+//
+//		System.out.println(returnString);
+//	}
+
+
+	/**
+	 *
+	 * @param args
+	 */
+//	public static void main(String[] args) {
+//
+////		List<Integer> arr = Arrays.asList(5, 5, 2, 5, 8);
+////		List<Integer> arr = Arrays.asList(2,1,6,4);
+//		List<Integer> arr = Arrays.asList(2,2,2);
+//		List<Integer> list = null;
+//		int size = arr.size();
+//
+//		int resultCount = 0;
+//
+//		for (int i=0; i<size; i++) {
+//			list = new ArrayList<>();
+//			list.addAll(arr);
+//
+//			ListIterator<Integer> it = list.listIterator();
+//			while (it.hasNext() ) {
+//				it.next();
+//				int index = it.nextIndex()-1;
+//				if (index == i) {
+//					it.remove();
+//					break;
+//				}
+//			}
+//
+//			int eSum = 0;
+//			int oSum = 0;
+//
+//			for (int j=0; j<list.size(); j++) {
+//				if ( j % 2 == 0) {
+//					eSum += list.get(j);
+//				} else {
+//					oSum += list.get(j);
+//				}
+//			}
+//
+//			if (eSum == oSum) {
+//				resultCount++;
+//			}
+//		}
+//		System.out.println(resultCount);
+//
+////		int size = arr.size();
+////		for (int i =0; i<size; i++) {
+////			List<Integer> subList = arr.subList(i, i);
+////			List<Integer> subLis2 = arr.subList(1, 5);
+////			List<Integer> collect = Stream.concat(subList.stream(), subLis2.stream()).collect(Collectors.toList());
+////
+////		}
+////		System.out.println(collect);
+//	}
 }
