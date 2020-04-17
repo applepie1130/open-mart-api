@@ -1,13 +1,7 @@
 package openmart.apiserver.api.service;
 
-import jdk.nashorn.internal.objects.NativeRegExp;
-
-import javax.sound.midi.Soundbank;
-import javax.xml.transform.sax.SAXSource;
-import java.util.*;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class AlgorithmsTest2 {
 	
