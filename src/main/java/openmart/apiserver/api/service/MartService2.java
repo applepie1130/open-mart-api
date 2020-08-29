@@ -65,6 +65,11 @@ public class MartService2 {
 
 	private final FileCommonUtils fileCommonUtils;
 
+	/**
+	 * Instantiates a new Mart service 2.
+	 *
+	 * @param fileCommonUtils the file common utils
+	 */
 	@Autowired
 	public MartService2(final FileCommonUtils fileCommonUtils) {
 		this.fileCommonUtils = fileCommonUtils;
@@ -80,7 +85,16 @@ public class MartService2 {
 	@Value("${API_RADIUS}")
 	private Integer API_RADIUS;
 
-	public Mono<List<MartHolidayInfosTuple>> new_findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
+
+	/**
+	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
+	 * 카카오 API 위치정보 판단<p>
+	 * 사전생성된 마트별 휴일정보 전화번호를 통한 조회
+	 *
+	 * @param martSearchCriteria the mart search criteria
+	 * @return the mono
+	 */
+	public Mono<List<MartHolidayInfosTuple>> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
 
 		String latitude = martSearchCriteria.getLatitude();
 		String longitude = martSearchCriteria.getLongitude();
@@ -108,14 +122,14 @@ public class MartService2 {
 			}
 
 			// 카카오API호출
-			searchResult = this.new_callKakaoApi(latitude, longitude, martName, null);
+			searchResult = this.callKakaoApi(latitude, longitude, martName, null);
 
 		} else { /** 마트이름이 없는경우, 대형마트 정보 전체 조회 **/
 			// 카카오API호출
-			Mono<List<KakaoSearchTuple>> emart = this.new_callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
-			Mono<List<KakaoSearchTuple>> lotte = this.new_callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
-			Mono<List<KakaoSearchTuple>> homeplus = this.new_callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
-			Mono<List<KakaoSearchTuple>> costco = this.new_callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
+			Mono<List<KakaoSearchTuple>> emart = this.callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
+			Mono<List<KakaoSearchTuple>> lotte = this.callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
+			Mono<List<KakaoSearchTuple>> homeplus = this.callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
+			Mono<List<KakaoSearchTuple>> costco = this.callKakaoApi(latitude, longitude, EmartConstants.name, API_RADIUS);
 
 			searchResult = Mono.zip(emart, lotte, homeplus, costco)
 					.flatMap(s -> {
@@ -211,13 +225,21 @@ public class MartService2 {
 
 			return Mono.just(result);
 		}).flatMap( s -> {
+			// 거리순으로 sort
 			return Mono.just(s.stream()
 				.sorted(Comparator.comparing(MartHolidayInfosTuple::getDistance))
 				.collect(Collectors.toList()));
 		});
 	}
 
-	private Mono<List<KakaoSearchTuple>> new_callKakaoApi(String latitude, String longitude, String martName, Integer radius) {
+	/**
+	 * 카카오 키워드 주소정보 조회 API 호출
+	 * @param latitude
+	 * @param longitude
+	 * @param martName
+	 * @return
+	 */
+	private Mono<List<KakaoSearchTuple>> callKakaoApi(String latitude, String longitude, String martName, Integer radius) {
 		URI uri;
 		if (radius != null && radius > 0) {
 			uri = UriComponentsBuilder
