@@ -210,33 +210,38 @@ public class MartV2Service {
 				String searchName = martSearchCriteria.getMartName();
 				martSearchCriteria.setMartName(null);
 
-				sbf.setLength(0);
-				sbf.append(searchName);
-				sbf.append("으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.");
+				Mono<List<MartHolidayInfosTuple>> martHolidayInfos = this.findMartHolidayInfos(martSearchCriteria);
 
-				// handsFree
-				if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
-					String holidaysInfo = t.get(0).getHolidaysInfo();
-					String name = t.get(0).getName();
-					String distance = t.get(0).getDisplayDistance();
-					Boolean isOpen = t.get(0).getIsOpen();
-
+				martHolidayInfos.flatMap(s -> {
 					sbf.setLength(0);
 					sbf.append(searchName);
-					sbf.append("으로 검색된 결과가 없네요, 대신 가장 가까운 마트정보로 알려줄게요. ");
-					sbf.append(name);
-					sbf.append("의 쉬는날은 ");
-					sbf.append(holidaysInfo);
-					sbf.append("이며,");
-					if (BooleanUtils.isTrue(isOpen)) {
-						sbf.append(" 오늘은 정상 영업일 입니다.");
-					} else {
-						sbf.append(" 오늘은 휴무일 입니다.");
+					sbf.append("으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.");
+
+					// handsFree
+					if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+						String holidaysInfo = s.get(0).getHolidaysInfo();
+						String name = s.get(0).getName();
+						String distance = s.get(0).getDisplayDistance();
+						Boolean isOpen = s.get(0).getIsOpen();
+
+						sbf.setLength(0);
+						sbf.append(searchName);
+						sbf.append("으로 검색된 결과가 없네요, 대신 가장 가까운 마트정보로 알려줄게요. ");
+						sbf.append(name);
+						sbf.append("의 쉬는날은 ");
+						sbf.append(holidaysInfo);
+						sbf.append("이며,");
+						if (BooleanUtils.isTrue(isOpen)) {
+							sbf.append(" 오늘은 정상 영업일 입니다.");
+						} else {
+							sbf.append(" 오늘은 휴무일 입니다.");
+						}
+						sbf.append(" 현재 위치로부터 ");
+						sbf.append(distance);
+						sbf.append(" 거리에 있습니다.");
 					}
-					sbf.append(" 현재 위치로부터 ");
-					sbf.append(distance);
-					sbf.append(" 거리에 있습니다.");
-				}
+					return Mono.just(s);
+				});
 
 			} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(t)) {
 				sbf.setLength(0);
