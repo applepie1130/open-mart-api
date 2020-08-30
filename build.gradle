@@ -29,10 +29,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 	implementation 'org.springframework.boot:spring-boot-starter-web-services'
-	implementation('org.springframework.boot:spring-boot-starter-web') {
-        exclude group: "org.springframework.boot", module: "spring-boot-starter-tomcat"
-    }
-    implementation 'org.springframework.boot:spring-boot-starter-undertow'
+//	implementation('org.springframework.boot:spring-boot-starter-web') {
+//        exclude group: "org.springframework.boot", module: "spring-boot-starter-tomcat"
+//    }
+//    implementation 'org.springframework.boot:spring-boot-starter-undertow'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
