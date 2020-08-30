@@ -19,7 +19,7 @@ configurations {
 	}
 
 	// exclude Tomcat
-	compile.exclude module: 'spring-boot-starter-tomcat'
+//	compile.exclude module: 'spring-boot-starter-tomcat'
 }
 
 repositories {
@@ -31,7 +31,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-undertow'
+//    implementation 'org.springframework.boot:spring-boot-starter-undertow'
 
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
