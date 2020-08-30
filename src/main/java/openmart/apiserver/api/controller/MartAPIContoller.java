@@ -23,9 +23,10 @@ import java.util.Map;
 /**
  * The type Mart api contoller.
  */
+@Deprecated
 @Api(tags = "MartAPIController", value = "마트정보 API", produces = "application/json")
 @RestController
-@RequestMapping(path = "/v1/mart", produces = "application/json")
+@RequestMapping(path = "/v2/mart", produces = "application/json")
 public class MartAPIContoller {
 	
 	@Autowired
@@ -40,7 +41,7 @@ public class MartAPIContoller {
 	@GetMapping(path="/martHolidayInfos")
 	@ApiOperation(
 			httpMethod = "GET",
-			value = "마트정보 조회",
+			value = "마트정보 조회 (Deprecated)",
 			notes = "위치기반 주변 마트정보 조회, 특정마트명을 넘길경우 해당 마트정보로만 조회",
 			response = Map.class
 			)

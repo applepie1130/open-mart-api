@@ -10,7 +10,9 @@ import lombok.extern.log4j.Log4j2;
 import openmart.apiserver.api.comonent.FileCommonUtils;
 import openmart.apiserver.api.model.criteria.MartSearchCriteria;
 import openmart.apiserver.api.model.tuple.LocationsTuple;
+import openmart.apiserver.api.model.tuple.MartHolidayInfosResponseTuple;
 import openmart.apiserver.api.model.tuple.MartHolidayInfosTuple;
+import openmart.apiserver.api.model.tuple.MartHolidayResponseTuple;
 import openmart.apiserver.api.model.tuple.admin.MartHolidayDetailTuple;
 import openmart.apiserver.api.model.tuple.emart.EmartResponseTuple;
 import openmart.apiserver.api.model.tuple.kakao.KakaoPlaceResponseTuple;
@@ -19,25 +21,24 @@ import openmart.apiserver.api.model.tuple.kakao.KakaoSearchTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartDetailResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartResponseTuple;
 import openmart.apiserver.api.model.tuple.lottemart.LotteMartSubResponseTuple;
-import openmart.apiserver.api.model.tuple.naver.NaverPlaceResponseTuple;
-import openmart.apiserver.api.model.tuple.naver.NaverSearchResponseTuple;
-import openmart.apiserver.api.model.tuple.naver.NaverSearchTuple;
 import openmart.apiserver.api.model.type.*;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
@@ -61,7 +62,7 @@ import java.util.stream.Stream;
 @Log4j2
 @Service
 @RefreshScope
-public class MartService2 {
+public class MartV2Service {
 
 	private final FileCommonUtils fileCommonUtils;
 
@@ -71,7 +72,7 @@ public class MartService2 {
 	 * @param fileCommonUtils the file common utils
 	 */
 	@Autowired
-	public MartService2(final FileCommonUtils fileCommonUtils) {
+	public MartV2Service(final FileCommonUtils fileCommonUtils) {
 		this.fileCommonUtils = fileCommonUtils;
 	}
 
@@ -87,6 +88,205 @@ public class MartService2 {
 
 
 	/**
+	 * 주변 마트정보 조회를 위한 응답결과
+	 *
+	 * @param martSearchCriteria
+	 * @return
+	 */
+	public Mono<MartHolidayResponseTuple> responseOfMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
+
+		List<MartHolidayInfosResponseTuple> resultList = new ArrayList<>();
+		Mono<List<MartHolidayInfosTuple>> searchMartList = this.findMartHolidayInfos(martSearchCriteria);
+
+		// Generate Message
+		StringBuffer sbf = new StringBuffer();
+
+		return searchMartList.flatMap(t->{
+			MartHolidayResponseTuple result = new MartHolidayResponseTuple();
+
+			if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(t)) {
+				if (t.size() > 1) {
+					// message default
+					sbf.append("어떤 마트에 대해 알려줄까요?");
+
+					// handsFree
+					String searchName = martSearchCriteria.getMartName();
+					if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+						String holidaysInfo = t.get(0).getHolidaysInfo();
+						String name = t.get(0).getName();
+						String distance = t.get(0).getDisplayDistance();
+						Boolean isOpen = t.get(0).getIsOpen();
+
+						sbf.setLength(0);
+						sbf.append("가장 가까운 마트인 ");
+						sbf.append(name);
+						sbf.append("으로 검색된 결과입니다. ");
+						sbf.append(name);
+						sbf.append("의 쉬는날은 ");
+						sbf.append(holidaysInfo);
+						sbf.append("이며,");
+						if (BooleanUtils.isTrue(isOpen)) {
+							sbf.append(" 오늘은 정상 영업일 입니다.");
+						} else {
+							sbf.append(" 오늘은 휴무일 입니다.");
+						}
+						sbf.append(" 현재 위치로부터 ");
+						sbf.append(distance);
+						sbf.append(" 거리에 있습니다.");
+					}
+				} else {
+					String searchName = martSearchCriteria.getMartName();
+					String holidaysInfo = t.get(0).getHolidaysInfo();
+					String name = t.get(0).getName();
+					Boolean isOpen = t.get(0).getIsOpen();
+
+					sbf.setLength(0);
+					sbf.append(searchName);
+					sbf.append("으로 검색된 결과입니다. ");
+					sbf.append(name);
+					sbf.append("의 쉬는날은 ");
+					sbf.append(holidaysInfo);
+					sbf.append("이며,");
+					if (BooleanUtils.isTrue(isOpen)) {
+						sbf.append(" 오늘은 정상 영업일 입니다.");
+					} else {
+						sbf.append(" 오늘은 휴무일 입니다.");
+					}
+
+					// handsFree
+					if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+						String distance = t.get(0).getDisplayDistance();
+
+						sbf.setLength(0);
+						sbf.append(searchName);
+						sbf.append("으로 검색된 결과입니다. ");
+						sbf.append(name);
+						sbf.append("의 쉬는날은 ");
+						sbf.append(holidaysInfo);
+						sbf.append("이며,");
+						if (BooleanUtils.isTrue(isOpen)) {
+							sbf.append(" 오늘은 정상 영업일 입니다.");
+						} else {
+							sbf.append(" 오늘은 휴무일 입니다.");
+						}
+						sbf.append(" 현재 위치로부터 ");
+						sbf.append(distance);
+						sbf.append(" 거리에 있습니다.");
+					}
+				}
+
+			} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(t)) {
+				sbf.setLength(0);
+				sbf.append("근처 마트로 검색된 결과입니다.");
+
+				// handsFree
+				if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+					String holidaysInfo = t.get(0).getHolidaysInfo();
+					String name = t.get(0).getName();
+					String distance = t.get(0).getDisplayDistance();
+					Boolean isOpen = t.get(0).getIsOpen();
+
+					sbf.setLength(0);
+					sbf.setLength(0);
+					sbf.append("가장 가까운 마트인 ");
+					sbf.append(name);
+					sbf.append("으로 검색된 결과입니다. ");
+					sbf.append(name);
+					sbf.append("의 쉬는날은 ");
+					sbf.append(holidaysInfo);
+					sbf.append("이며,");
+					if (BooleanUtils.isTrue(isOpen)) {
+						sbf.append(" 오늘은 정상 영업일 입니다.");
+					} else {
+						sbf.append(" 오늘은 휴무일 입니다.");
+					}
+					sbf.append(" 현재 위치로부터 ");
+					sbf.append(distance);
+					sbf.append(" 거리에 있습니다.");
+				}
+
+			} else if (StringUtils.isNotBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(t)) {
+				// 근처 마트정보로 재조회
+				String searchName = martSearchCriteria.getMartName();
+				martSearchCriteria.setMartName(null);
+
+				sbf.setLength(0);
+				sbf.append(searchName);
+				sbf.append("으로 검색된 결과가 없네요, 대신 근처에 있는 마트정보를 알려줄게요.");
+
+				// handsFree
+				if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+					String holidaysInfo = t.get(0).getHolidaysInfo();
+					String name = t.get(0).getName();
+					String distance = t.get(0).getDisplayDistance();
+					Boolean isOpen = t.get(0).getIsOpen();
+
+					sbf.setLength(0);
+					sbf.append(searchName);
+					sbf.append("으로 검색된 결과가 없네요, 대신 가장 가까운 마트정보로 알려줄게요. ");
+					sbf.append(name);
+					sbf.append("의 쉬는날은 ");
+					sbf.append(holidaysInfo);
+					sbf.append("이며,");
+					if (BooleanUtils.isTrue(isOpen)) {
+						sbf.append(" 오늘은 정상 영업일 입니다.");
+					} else {
+						sbf.append(" 오늘은 휴무일 입니다.");
+					}
+					sbf.append(" 현재 위치로부터 ");
+					sbf.append(distance);
+					sbf.append(" 거리에 있습니다.");
+				}
+
+			} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && !CollectionUtils.isEmpty(t)) {
+				sbf.setLength(0);
+				sbf.append("어떤 마트에 대해 알려줄까요?");
+
+				// handsFree
+				if (BooleanUtils.isTrue(martSearchCriteria.getIsHandsfree())) {
+					String holidaysInfo = t.get(0).getHolidaysInfo();
+					String name = t.get(0).getName();
+					String distance = t.get(0).getDisplayDistance();
+					Boolean isOpen = t.get(0).getIsOpen();
+
+					sbf.setLength(0);
+					sbf.append("가장 가까운 마트인 ");
+					sbf.append(name);
+					sbf.append("으로 검색된 결과입니다. ");
+					sbf.append(name);
+					sbf.append("의 쉬는날은 ");
+					sbf.append(holidaysInfo);
+					sbf.append("이며,");
+					if (BooleanUtils.isTrue(isOpen)) {
+						sbf.append(" 오늘은 정상 영업일 입니다.");
+					} else {
+						sbf.append(" 오늘은 휴무일 입니다.");
+					}
+					sbf.append(" 현재 위치로부터 ");
+					sbf.append(distance);
+					sbf.append(" 거리에 있습니다.");
+				}
+
+			} else if (StringUtils.isBlank(martSearchCriteria.getMartName()) && CollectionUtils.isEmpty(t)) {
+				sbf.setLength(0);
+				sbf.append("검색된 마트정보가 없네요.");
+			}
+
+			String message = sbf.toString();
+
+			t.forEach(s-> {
+				resultList.add(s.of());
+			});
+
+			result.setSearchMartList(resultList);
+			result.setMessage(message);
+
+			return Mono.just(result);
+		});
+	}
+
+
+	/**
 	 * 위치정보를 판단하여, 주변 마트정보 조회<p>
 	 * 카카오 API 위치정보 판단<p>
 	 * 사전생성된 마트별 휴일정보 전화번호를 통한 조회
@@ -94,7 +294,7 @@ public class MartService2 {
 	 * @param martSearchCriteria the mart search criteria
 	 * @return the mono
 	 */
-	public Mono<List<MartHolidayInfosTuple>> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
+	private Mono<List<MartHolidayInfosTuple>> findMartHolidayInfos(MartSearchCriteria martSearchCriteria) {
 
 		String latitude = martSearchCriteria.getLatitude();
 		String longitude = martSearchCriteria.getLongitude();
@@ -134,8 +334,8 @@ public class MartService2 {
 			searchResult = Mono.zip(emart, lotte, homeplus, costco)
 					.flatMap(s -> {
 						return Mono.just(Stream.of(s.getT1(), s.getT2(), s.getT3(), s.getT4())
-								.flatMap(Collection::stream)
-								.collect(Collectors.toList()));
+											.flatMap(Collection::stream)
+											.collect(Collectors.toList()));
 					});
 		}
 
@@ -362,15 +562,6 @@ public class MartService2 {
 			// 롯데마트 
 			Map<String, MartHolidayDetailTuple> lotteMartHolidayInfo = this.getLotteMartHolidayInfo();
 			fileCommonUtils.writeFileToJSONMap(LotteMartConstants.filePath, lotteMartHolidayInfo);
-			
-//			// 홈플러스
-//			Map<String, MartHolidayDetailTuple> homePlusMartHolidayInfo = this.getHomePlusMartHolidayInfo();
-//			fileCommonUtils.writeFileToJSONMap("/tank0/holidays/homeplus.json", homePlusMartHolidayInfo);
-//			
-//			// 코스트코어
-//			Map<String, MartHolidayDetailTuple> costcoMartHolidayInfo = this.getCostcoMartHolidayInfo();
-//			fileCommonUtils.writeFileToJSONMap("/tank0/holidays/costco.json", costcoMartHolidayInfo);
-			
 		} catch (Exception e) {
 			if (log.isErrorEnabled()) {
 				log.error(e.getMessage(), e);
