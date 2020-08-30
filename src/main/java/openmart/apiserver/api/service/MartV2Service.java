@@ -241,6 +241,10 @@ public class MartV2Service {
 						sbf.append(" 거리에 있습니다.");
 					}
 
+					s.forEach(u-> {
+						resultList.add(u.of());
+					});
+
 					String message = sbf.toString();
 					result.setSearchMartList(resultList);
 					result.setMessage(message);
